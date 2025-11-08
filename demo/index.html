@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wearther - デモ</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- ホーム画面 -->
+    <div class="screen active" id="home-screen">
+        <div class="header">
+            <h1 class="app-title">Wearther</h1>
+            <div class="header-icons">
+                <span class="icon">🔔</span>
+                <span class="icon">💬</span>
+            </div>
+        </div>
+
+        <!-- ストーリー一覧 -->
+        <div class="stories-container">
+            <div class="story-item">
+                <div class="story-avatar">👤</div>
+                <div class="story-name">あなた</div>
+            </div>
+            <div class="story-item active">
+                <div class="story-avatar">👩</div>
+                <div class="story-name">Haruka</div>
+            </div>
+            <div class="story-item">
+                <div class="story-avatar">👨</div>
+                <div class="story-name">Taro</div>
+            </div>
+            <div class="story-item">
+                <div class="story-avatar">👧</div>
+                <div class="story-name">Yuki</div>
+            </div>
+            <div class="story-item">
+                <div class="story-avatar">👦</div>
+                <div class="story-name">Riku</div>
+            </div>
+        </div>
+
+        <!-- 天気カード -->
+        <div class="weather-card">
+            <div class="weather-icon">☀️</div>
+            <div class="weather-info">
+                <div class="weather-copy">TシャツOK</div>
+                <div class="weather-temp">
+                    <span class="temp-high">25°</span>
+                    <span class="temp-low">18°</span>
+                </div>
+                <div class="weather-details">
+                    <span>体感: 24°</span>
+                    <span>降水確率: 10%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AIコーデ提案 -->
+        <div class="outfit-suggestion">
+            <h2 class="section-title">今日のおすすめコーデ</h2>
+            <div class="outfit-card">
+                <div class="outfit-image">📸</div>
+                <div class="outfit-info">
+                    <div class="outfit-user">@fashion_lover</div>
+                    <div class="outfit-desc">20°・晴れの日のコーデ</div>
+                    <div class="outfit-stats">
+                        <span>❤️ 234</span>
+                        <span>💾 45</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-bar">
+            <div class="tab-item active">🏠</div>
+            <div class="tab-item">📱</div>
+            <div class="tab-item">✨</div>
+            <div class="tab-item">👤</div>
+        </div>
+    </div>
+
+    <!-- タイムライン画面 -->
+    <div class="screen" id="timeline-screen">
+        <div class="header">
+            <h1 class="app-title">コミュニティ</h1>
+            <div class="header-icons">
+                <span class="icon">🔍</span>
+            </div>
+        </div>
+        <div class="filter-tabs">
+            <div class="filter-tab active">タイムライン</div>
+            <div class="filter-tab">ランキング</div>
+            <div class="filter-tab">おすすめ</div>
+        </div>
+        <div class="posts-container">
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-user">
+                        <div class="user-avatar">👩</div>
+                        <div class="user-info">
+                            <div class="user-name">Haruka</div>
+                            <div class="post-meta">2時間前・東京・☀️ 22°</div>
+                        </div>
+                    </div>
+                    <span class="more-icon">⋯</span>
+                </div>
+                <div class="post-image">📸</div>
+                <div class="post-actions">
+                    <span class="action-icon">❤️</span>
+                    <span class="action-icon">💬</span>
+                    <span class="action-icon">📤</span>
+                    <span class="action-icon save">💾</span>
+                </div>
+                <div class="post-content">
+                    <div class="post-likes">❤️ 234件のいいね</div>
+                    <div class="post-caption">
+                        <strong>@haruka</strong> 今日は暖かくて気持ちいい！カジュアルなコーデでお出かけしました☀️
+                    </div>
+                    <div class="post-tags">#カジュアル #春コーデ #晴れ</div>
+                </div>
+            </div>
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-user">
+                        <div class="user-avatar">👨</div>
+                        <div class="user-info">
+                            <div class="user-name">Taro</div>
+                            <div class="post-meta">5時間前・大阪・☁️ 18°</div>
+                        </div>
+                    </div>
+                    <span class="more-icon">⋯</span>
+                </div>
+                <div class="post-image">📸</div>
+                <div class="post-actions">
+                    <span class="action-icon">🤍</span>
+                    <span class="action-icon">💬</span>
+                    <span class="action-icon">📤</span>
+                    <span class="action-icon save">💾</span>
+                </div>
+                <div class="post-content">
+                    <div class="post-likes">🤍 89件のいいね</div>
+                    <div class="post-caption">
+                        <strong>@taro</strong> 曇りだけど過ごしやすい気温。パーカーがちょうどいい感じです
+                    </div>
+                    <div class="post-tags">#ストリート #パーカー #曇り</div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-bar">
+            <div class="tab-item">🏠</div>
+            <div class="tab-item active">📱</div>
+            <div class="tab-item">✨</div>
+            <div class="tab-item">👤</div>
+        </div>
+    </div>
+
+    <!-- 詳細天気画面 -->
+    <div class="screen" id="weather-detail-screen">
+        <div class="header">
+            <span class="back-icon">←</span>
+            <h1 class="app-title">天気詳細</h1>
+            <span class="icon">⚙️</span>
+        </div>
+        <div class="weather-detail-container">
+            <div class="period-tabs">
+                <div class="period-tab active">今日</div>
+                <div class="period-tab">明日</div>
+                <div class="period-tab">週間</div>
+            </div>
+            <div class="weather-detail-card">
+                <div class="weather-main">
+                    <div class="weather-icon-large">☀️</div>
+                    <div class="weather-temp-large">25°</div>
+                    <div class="weather-condition">晴れ</div>
+                </div>
+                <div class="weather-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">体感温度</div>
+                        <div class="stat-value">24°</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">湿度</div>
+                        <div class="stat-value">65%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">風速</div>
+                        <div class="stat-value">3m/s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">降水確率</div>
+                        <div class="stat-value">10%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">UV指数</div>
+                        <div class="stat-value">中</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">気圧</div>
+                        <div class="stat-value">1013hPa</div>
+                    </div>
+                </div>
+            </div>
+            <div class="recommendation-card">
+                <h3>今日の推奨アイテム</h3>
+                <div class="recommendation-items">
+                    <span class="recommendation-tag">Tシャツ</span>
+                    <span class="recommendation-tag">サングラス</span>
+                    <span class="recommendation-tag">日焼け止め</span>
+                </div>
+            </div>
+        </div>
+        <div class="tab-bar">
+            <div class="tab-item">🏠</div>
+            <div class="tab-item">📱</div>
+            <div class="tab-item">✨</div>
+            <div class="tab-item">👤</div>
+        </div>
+    </div>
+
+    <!-- プロフィール画面 -->
+    <div class="screen" id="profile-screen">
+        <div class="header">
+            <h1 class="app-title">プロフィール</h1>
+            <span class="icon">⚙️</span>
+        </div>
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar-large">👤</div>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-number">24</div>
+                        <div class="stat-label">投稿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">156</div>
+                        <div class="stat-label">フォロワー</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">89</div>
+                        <div class="stat-label">フォロー中</div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-info">
+                <div class="profile-name">あなたの名前</div>
+                <div class="profile-bio">ファッションが好きです。天気に合わせたコーデを楽しんでいます！</div>
+            </div>
+            <div class="profile-tabs">
+                <div class="profile-tab active">📸 投稿</div>
+                <div class="profile-tab">💾 保存済み</div>
+            </div>
+            <div class="profile-posts-grid">
+                <div class="post-thumbnail">📸</div>
+                <div class="post-thumbnail">📸</div>
+                <div class="post-thumbnail">📸</div>
+                <div class="post-thumbnail">📸</div>
+                <div class="post-thumbnail">📸</div>
+                <div class="post-thumbnail">📸</div>
+            </div>
+        </div>
+        <div class="tab-bar">
+            <div class="tab-item">🏠</div>
+            <div class="tab-item">📱</div>
+            <div class="tab-item">✨</div>
+            <div class="tab-item active">👤</div>
+        </div>
+    </div>
+</body>
+</html>
+
