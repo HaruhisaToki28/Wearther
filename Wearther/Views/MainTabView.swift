@@ -52,7 +52,7 @@ struct MainTabView: View {
                 case .clothes:
                     Text("Clothes View")
                 case .profile:
-                    Text("Profile View")
+                    ProfileView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
