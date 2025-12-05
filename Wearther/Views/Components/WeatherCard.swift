@@ -11,21 +11,27 @@ struct WeatherCard: View {
     let weather: Weather
     
     var body: some View {
-        VStack(spacing: 21) {
+        VStack(spacing: 16) {
             Text(weather.location)
-                .font(.system(size: 23, weight: .bold))
+                .font(.system(size: 25, weight: .bold))
                 .kerning(-0.5)
                 .foregroundColor(WeatherCardColors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .center)
             
-            HStack(alignment: .center, spacing: 24) {
+            HStack(alignment: .center, spacing: 0) {
+                // 左半分: 天気アイコン
                 WeatherIllustrationView(condition: weather.condition)
+                    .frame(maxWidth: .infinity)
                     .accessibilityHidden(true)
                 
-                VStack(alignment: .leading, spacing: 18) {
+                // 右半分: 情報
+                VStack(alignment: .leading, spacing: 4) {
                     Text(weather.condition.rawValue)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundColor(WeatherCardColors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     TemperatureSpreadView(
                         high: Int(weather.temperature.rounded()),
@@ -34,12 +40,12 @@ struct WeatherCard: View {
                     
                     PrecipitationRow(chance: weather.precipitationChance)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
+                .padding(.leading, 10)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .padding(.horizontal, 28)
-        .padding(.vertical, 24)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(WeatherCardColors.cardBackground)
@@ -58,8 +64,8 @@ struct WeatherCard: View {
 }
 
 private enum WeatherCardColors {
-    static let textPrimary = Color(red: 0.18, green: 0.18, blue: 0.18) // #2D2D2D
-    static let textSecondary = Color(red: 0.40, green: 0.41, blue: 0.42)
+    static let textPrimary = Color(red: 0.176, green: 0.176, blue: 0.176) // #2D2D2D
+    static let textSecondary = Color(red: 0.176, green: 0.176, blue: 0.176) // Changed to match primary
     static let highTemperature = Color(red: 1.0, green: 0.145, blue: 0.223) // #FF2539
     static let lowTemperature = Color(red: 0.21, green: 0.51, blue: 0.86) // #3582DC
     static let cardBackground = Color.white
@@ -73,7 +79,7 @@ private struct TemperatureSpreadView: View {
     let low: Int
     
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 8) {
             TemperatureValueView(
                 value: high,
                 color: WeatherCardColors.highTemperature
@@ -81,7 +87,7 @@ private struct TemperatureSpreadView: View {
             
             Rectangle()
                 .fill(Color.black.opacity(0.08))
-                .frame(width: 1, height: 32)
+                .frame(width: 1, height: 24)
             
             TemperatureValueView(
                 value: low,
@@ -96,18 +102,19 @@ private struct TemperatureValueView: View {
     let color: Color
     
     var body: some View {
-        HStack(alignment: .top, spacing: 2) {
+        HStack(alignment: .bottom, spacing: 0) {
             Text("\(value)")
                 .font(.system(size: 40, weight: .bold))
                 .monospacedDigit()
                 .foregroundColor(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .kerning(-2)
             
             Text("°C")
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(color)
-                .baselineOffset(6)
+                .padding(.bottom, 5)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("摂氏\(value)度")
@@ -121,7 +128,7 @@ private struct PrecipitationRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "drop.fill")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(WeatherCardColors.precipitationIcon)
             
             Text("降水確率 \(chance)%")
@@ -144,10 +151,9 @@ private struct WeatherIllustrationView: View {
                     paletteColors.indices.contains(1) ? paletteColors[1] : paletteColors[0],
                     paletteColors.indices.contains(2) ? paletteColors[2] : paletteColors.last ?? paletteColors[0]
                 )
-                .font(.system(size: 54, weight: .semibold))
-                .frame(width: 88, height: 60)
+                .font(.system(size: 72, weight: .semibold))
+                .frame(width: 110, height: 80)
         }
-        .frame(width: 96, height: 74)
     }
     
     private var symbolName: String {

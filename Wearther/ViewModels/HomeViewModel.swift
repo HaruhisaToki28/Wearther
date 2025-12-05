@@ -135,6 +135,14 @@ class HomeViewModel: ObservableObject {
         ]
     }
     
+    func refresh() async {
+        isLoading = true
+        // 疑似的な遅延を追加
+        try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+        loadMockData()
+        isLoading = false
+    }
+    
     func toggleLike(for recommendation: OutfitRecommendation) {
         if let index = outfitRecommendations.firstIndex(where: { $0.id == recommendation.id }) {
             let current = outfitRecommendations[index]

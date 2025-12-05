@@ -12,15 +12,20 @@ struct FashionAdviceCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(advice.title)
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(.primary)
-            
+            HStack{
+                Spacer()
+                Text(advice.title)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color(red: 0x2D/255, green: 0x2D/255, blue: 0x2D/255))
+                Spacer()
+            }
             Text(advice.description)
-                .font(.system(size: 15))
+                .font(.system(size: 12))
                 .foregroundColor(.secondary)
-                .lineSpacing(4)
+                .lineSpacing(1)
+                .padding(.horizontal, 50)
         }
+        
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

@@ -9,80 +9,90 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
-    @State private var isHeaderVisible = true
-    @State private var previousScrollOffset: CGFloat = 0
     
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
                 let safeBottom = geometry.safeAreaInsets.bottom
                 let targetWidth: CGFloat = 360
-                let horizontalPadding = max((geometry.size.width - targetWidth) / 2, 20)
-                let safeTop = geometry.safeAreaInsets.top
-                let headerExpandedHeight = safeTop + 52
+                let horizontalPadding = max((geometry.size.width - targetWidth) / 2, 16)
                 
                 VStack(spacing: 0) {
-                    HomeHeaderBar(
-                        safeAreaTop: safeTop,
-                        horizontalPadding: horizontalPadding
-                    )
-                    .frame(maxWidth: .infinity)
-                    .frame(height: isHeaderVisible ? headerExpandedHeight : 0, alignment: .top)
-                    .clipped()
-                    .animation(.easeInOut(duration: 0.24), value: isHeaderVisible)
-                    
-                    ScrollView {
-                        GeometryReader { proxy in
-                            Color.clear
-                                .preference(
-                                    key: ScrollOffsetPreferenceKey.self,
-                                    value: proxy.frame(in: .global).minY
-                                )
-                        }
-                        .frame(height: 0)
+                    // MARK: - Custom Header
+                    HStack {
+                        Text("Wearther")
+                            .font(.custom("Sinhala MN", size: 30))
+                            .foregroundColor(.black)
                         
-                        LazyVStack(alignment: .leading, spacing: 28) {
-                            if !viewModel.stories.isEmpty {
-                                StoriesSection(
-                                    stories: viewModel.stories,
-                                    horizontalPadding: horizontalPadding
-                                )
-                            }
-                            
-                            if let weather = viewModel.weather {
-                                WeatherCard(weather: weather)
-                            }
-                            
-                            if let advice = viewModel.fashionAdvice {
-                                FashionAdviceCard(advice: advice)
-                            }
+                        Spacer()
+                        
+                        Image(systemName: "bell")
+                            .font(.system(size: 24))
+                            .foregroundColor(.black)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        Color.white
+                            .ignoresSafeArea(edges: .top)
+                    )
+                    
+                    ZStack(alignment: .top) {
+                        // 背景色（下層）: ベースはグレー
+                        Color(red: 0.96, green: 0.96, blue: 0.96)
+                            .ignoresSafeArea()
+                        
+                        // 背景色（上層）: 上部のバウンス領域用（白）
+                        Color.white
+                            .frame(height: 500)
+                            .ignoresSafeArea()
+                        
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                // 下に引っ張った時の上部背景用（白）は削除済み
+                                
+                                LazyVStack(alignment: .leading, spacing: 28) {
+                                    if !viewModel.stories.isEmpty {
+                                        StoriesSection(
+                                            stories: viewModel.stories
+                                        )
+                                        .padding(.horizontal, -horizontalPadding)
+                                    }
+                                    
+                                    if let weather = viewModel.weather {
+                                        WeatherCard(weather: weather)
+                                    }
+                                    
+                                    if let advice = viewModel.fashionAdvice {
+                                        FashionAdviceCard(advice: advice)
+                                    }
                             
                             SectionHeader(title: "あなたにおすすめ")
                             
-                            OutfitCarousel(
+                            OutfitGrid(
                                 recommendations: viewModel.outfitRecommendations,
                                 onLikeTapped: { recommendation in
                                     viewModel.toggleLike(for: recommendation)
+                                },
+                                onLoadMore: {
+                                    // TODO: Implement pagination
+                                    // viewModel.loadMoreRecommendations()
                                 }
                             )
+                            }
+                            .padding(.horizontal, horizontalPadding)
+                            .padding(.top, 0)
+                            .padding(.bottom, safeBottom + 60)
                         }
-                        .padding(.horizontal, horizontalPadding)
-                        .padding(.top, 24)
-                        .padding(.bottom, safeBottom + 60)
+                        .background(Color(red: 0.96, green: 0.96, blue: 0.96)) // コンテンツ部分に背景色を設定
                     }
-                    .coordinateSpace(name: "homeScroll")
                     .scrollIndicators(.hidden)
-                }
-                .background(
-                    Color(red: 0.96, green: 0.96, blue: 0.96)
-                        .ignoresSafeArea()
-                )
-                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                    updateHeaderVisibility(with: value)
+                    .refreshable {
+                        await viewModel.refresh()
+                    }
+                    }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("")
             .navigationBarHidden(true)
         }
     }
@@ -94,63 +104,23 @@ private struct SectionHeader: View {
     var body: some View {
         Text(title)
             .font(.system(size: 18, weight: .bold))
-            .foregroundColor(.primary)
-    }
-}
-
-private struct HomeHeaderView: View {
-    var body: some View {
-        HStack(alignment: .center) {
-            Text("Wearther")
-                .font(.system(size: 30, weight: .bold))
-                .kerning(-1)
-                .foregroundColor(.primary)
-                .accessibilityAddTraits(.isHeader)
-            
-            Spacer()
-            
-            HeaderIconButton(systemName: "bell")
-        }
-    }
-}
-
-private struct HeaderIconButton: View {
-    let systemName: String
-    
-    var body: some View {
-        Button(action: {}) {
-            Image(systemName: systemName)
-                .font(.system(size: 22, weight: .regular))
-                .foregroundColor(.primary)
-                .frame(width: 44, height: 44)
-        }
-        .buttonStyle(.plain)
+            .foregroundColor(Color(red: 0.176, green: 0.176, blue: 0.176))
     }
 }
 
 private struct StoriesSection: View {
     let stories: [StoryProfile]
-    let horizontalPadding: CGFloat
     
     var body: some View {
         StoriesCarouselView(stories: stories)
-            .padding(.horizontal, 20)
             .padding(.vertical, 18)
             .background(Color.white)
-            .padding(.horizontal, -horizontalPadding)
-    }
-}
-
-private struct HomeHeaderBar: View {
-    let safeAreaTop: CGFloat
-    let horizontalPadding: CGFloat
-    
-    var body: some View {
-        HomeHeaderView()
-            .padding(.top, safeAreaTop + 2)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.bottom, 8)
-            .background(Color.white)
+            .overlay(
+                Divider()
+                    .background(Color(red: 0.87, green: 0.87, blue: 0.87))
+                    .frame(height: 0.05),
+                alignment: .bottom
+            )
     }
 }
 
@@ -160,11 +130,11 @@ private struct StoriesCarouselView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 18) {
-                ForEach(stories.prefix(10)) { story in
+                ForEach(stories.prefix(18)) { story in
                     StoryCircleView(story: story)
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 16)
         }
     }
 }
@@ -230,38 +200,6 @@ private struct StoryCircleView: View {
     }
 }
 
-private extension HomeView {
-    func updateHeaderVisibility(with newOffset: CGFloat) {
-        let threshold: CGFloat = 8
-        let delta = newOffset - previousScrollOffset
-        
-        guard abs(delta) > threshold else { return }
-        
-        if delta < 0 {
-            withAnimation(.easeInOut(duration: 0.24)) {
-                isHeaderVisible = false
-            }
-        } else {
-            withAnimation(.easeInOut(duration: 0.24)) {
-                isHeaderVisible = true
-            }
-        }
-        
-        previousScrollOffset = newOffset
-    }
-}
-
-private struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
 #Preview {
     HomeView()
 }
-
-
-
