@@ -113,7 +113,7 @@ private struct StoriesSection: View {
     
     var body: some View {
         StoriesCarouselView(stories: stories)
-            .padding(.vertical, 18)
+            .padding(.vertical, 10)
             .background(Color.white)
             .overlay(
                 Divider()

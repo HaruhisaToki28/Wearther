@@ -141,6 +141,12 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, 0)
                             .background(Color.white) // タブ部分も白背景
+                            .overlay(
+                                Divider()
+                                    .background(Color(red: 0.87, green: 0.87, blue: 0.87))
+                                    .frame(height: 0.05),
+                                alignment: .bottom
+                            )
                             
                             // Grid Content
                             let displayPosts = viewModel.selectedTab == .posts ? viewModel.posts : viewModel.likedPosts
