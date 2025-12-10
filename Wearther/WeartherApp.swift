@@ -26,7 +26,7 @@ struct WeartherApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
     }
 }

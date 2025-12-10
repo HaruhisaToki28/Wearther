@@ -36,6 +36,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4C31B2D52EE164D200B46443 /* img */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = img;
+			sourceTree = "<group>";
+		};
 		4CA01E0C2EBDD5A800310C6C /* Wearther */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Wearther;
@@ -82,7 +87,11 @@
 		4CA01E012EBDD5A800310C6C = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< HEAD
 				D74D49932EE3F10200657E67 /* .gitignore */,
+=======
+				4C31B2D52EE164D200B46443 /* img */,
+>>>>>>> main
 				4CA01E0C2EBDD5A800310C6C /* Wearther */,
 				4CA01E1A2EBDD5A900310C6C /* WeartherTests */,
 				4CA01E242EBDD5A900310C6C /* WeartherUITests */,
@@ -116,6 +125,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				4C31B2D52EE164D200B46443 /* img */,
 				4CA01E0C2EBDD5A800310C6C /* Wearther */,
 			);
 			name = Wearther;
