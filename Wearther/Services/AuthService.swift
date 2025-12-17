@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseAuth
 import Combine
+import GoogleSignIn
 
 class AuthService: ObservableObject {
     
@@ -27,13 +28,37 @@ class AuthService: ObservableObject {
 
 
     func signInWithGoogle() async throws {
-        // 認証フローを開始 (外部ライブラリの処理が必要)
-        // ...
-        
-        // 認証トークンを取得した後、Firebaseに連携する
-        // let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-        // _ = try await Auth.auth().signIn(with: credential)
+        guard let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
+            throw NSError(domain: "AuthError", code: 0)
+        }
+
+        guard let rootViewController = scene.windows
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else {
+            throw NSError(domain: "AuthError", code: 0)
+        }
+
+        let result = try await GIDSignIn.sharedInstance.signIn(
+            withPresenting: rootViewController
+        )
+
+        guard
+            let idToken = result.user.idToken?.tokenString
+        else {
+            throw NSError(domain: "AuthError", code: 0)
+        }
+
+        let accessToken = result.user.accessToken.tokenString
+
+        let credential = GoogleAuthProvider.credential(
+            withIDToken: idToken,
+            accessToken: accessToken
+        )
+
+        _ = try await Auth.auth().signIn(with: credential)
     }
+
     
     func signOut() throws {
         try Auth.auth().signOut()
