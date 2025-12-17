@@ -11,6 +11,7 @@
 		D71E27A32EF2E289005BE351 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D71E27A22EF2E289005BE351 /* FirebaseAuth */; };
 		D74D49942EE3F10600657E67 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D74D49932EE3F10200657E67 /* .gitignore */; };
 		D79BFEF02EF2EE670030FA50 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D79BFEEF2EF2EE670030FA50 /* GoogleSignIn */; };
+		D7F24C9F2EF3056100C982E5 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D7F24C9E2EF3056100C982E5 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 				D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */,
 				D71E27A32EF2E289005BE351 /* FirebaseAuth in Frameworks */,
 				D79BFEF02EF2EE670030FA50 /* GoogleSignIn in Frameworks */,
+				D7F24C9F2EF3056100C982E5 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +165,7 @@
 				D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */,
 				D71E27A22EF2E289005BE351 /* FirebaseAuth */,
 				D79BFEEF2EF2EE670030FA50 /* GoogleSignIn */,
+				D7F24C9E2EF3056100C982E5 /* GoogleSignInSwift */,
 			);
 			productName = Wearther;
 			productReference = 4CA01E0A2EBDD5A800310C6C /* Wearther.app */;
@@ -661,6 +664,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D79BFEEE2EF2EE3D0030FA50 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		D7F24C9E2EF3056100C982E5 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D79BFEEE2EF2EE3D0030FA50 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

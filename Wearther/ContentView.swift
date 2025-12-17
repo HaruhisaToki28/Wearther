@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject var authService = AuthService()
+    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         Group {
@@ -19,32 +19,7 @@ struct ContentView: View {
                     }
                 }
             } else {
-                SignInView(authService: authService)
-            }
-        }
-        .environmentObject(authService)
-    }
-}
-
-struct SignInView: View {
-    @ObservedObject var authService: AuthService
-    @State private var email = ""
-    @State private var password = ""
-    
-    var body: some View {
-        VStack {
-            TextField("メールアドレス", text: $email)
-            SecureField("パスワード", text: $password)
-            
-            Button("サインイン") {
-                Task {
-                    try? await authService.signIn(email: email, password: password)
-                }
-            }
-            Button("Googleでサインイン") {
-                Task {
-                    try? await authService.signInWithGoogle()
-                }
+                SignInView()
             }
         }
     }
