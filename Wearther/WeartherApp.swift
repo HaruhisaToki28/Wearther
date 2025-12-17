@@ -7,26 +7,40 @@
 
 import SwiftUI
 import FirebaseCore
+import GoogleSignIn
 
-class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
+class AppLifecycleHandler: NSObject, UIApplicationDelegate {
     
-    // デバック用
-    print("🚀 Firebase has been configured!")
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    ) -> Bool {
+        FirebaseApp.configure()
+        print("🚀 Firebase has been configured!")
+        return true
+    }
 
-    return true
-  }
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        return GIDSignIn.sharedInstance.handle(url)
+    }
 }
 
 @main
 struct WeartherApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+    @UIApplicationDelegateAdaptor(AppLifecycleHandler.self) var delegate
+
+    @StateObject private var authService = AuthService()
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            
+            ContentView()
+
+                .environmentObject(authService)
         }
     }
 }
