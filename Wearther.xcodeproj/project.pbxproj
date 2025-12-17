@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */; };
+		D74D49942EE3F10600657E67 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D74D49932EE3F10200657E67 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4CA01E182EBDD5A900310C6C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,7 @@
 		4CA01E0A2EBDD5A800310C6C /* Wearther.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wearther.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CA01E172EBDD5A900310C6C /* WeartherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeartherTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CA01E212EBDD5A900310C6C /* WeartherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeartherUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D74D49932EE3F10200657E67 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -57,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,7 +87,7 @@
 		4CA01E012EBDD5A800310C6C = {
 			isa = PBXGroup;
 			children = (
-				4C31B2D52EE164D200B46443 /* img */,
+				D74D49932EE3F10200657E67 /* .gitignore */,
 				4CA01E0C2EBDD5A800310C6C /* Wearther */,
 				4CA01E1A2EBDD5A900310C6C /* WeartherTests */,
 				4CA01E242EBDD5A900310C6C /* WeartherUITests */,
@@ -119,6 +126,7 @@
 			);
 			name = Wearther;
 			packageProductDependencies = (
+				D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */,
 			);
 			productName = Wearther;
 			productReference = 4CA01E0A2EBDD5A800310C6C /* Wearther.app */;
@@ -202,6 +210,9 @@
 			);
 			mainGroup = 4CA01E012EBDD5A800310C6C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D71DF7E82EE1348400CCC8C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4CA01E0B2EBDD5A800310C6C /* Products */;
 			projectDirPath = "";
@@ -219,6 +230,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D74D49942EE3F10600657E67 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,6 +589,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D71DF7E82EE1348400CCC8C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D71DF7E82EE1348400CCC8C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4CA01E022EBDD5A800310C6C /* Project object */;
 }
