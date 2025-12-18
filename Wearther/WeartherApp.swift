@@ -32,7 +32,6 @@ class AppLifecycleHandler: NSObject, UIApplicationDelegate {
 @main
 struct WeartherApp: App {
     @UIApplicationDelegateAdaptor(AppLifecycleHandler.self) var delegate
-
     @StateObject private var authService = AuthService()
 
         var body: some Scene {

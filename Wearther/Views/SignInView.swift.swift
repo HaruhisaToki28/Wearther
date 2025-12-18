@@ -14,10 +14,11 @@ struct SignInView: View {
     
     @State private var email = ""
     @State private var password = ""
+    @State private var isShowingSignUp = false
     
     var body: some View {
         VStack {
-            Text("アカウントにサインイン")
+            Text("アカウントにログイン")
                 .font(.title)
                 .padding(.bottom, 30)
 
@@ -27,7 +28,7 @@ struct SignInView: View {
                 SecureField("パスワード", text: $password)
                     .textFieldStyle(.roundedBorder)
                 
-                Button("サインイン") {
+                Button("ログイン") {
                     Task {
                         try? await authService.signIn(email: email, password: password)
                     }
@@ -48,5 +49,15 @@ struct SignInView: View {
             .padding(.top, 20)
         }
         .padding()
+        
+        //SingUp への導線
+        Button("新しくアカウントを作る") {
+            isShowingSignUp = true
+        }
+        
+        .padding(.top, 10)
+        .sheet(isPresented: $isShowingSignUp) {
+            SignUpView()
+        }
     }
 }

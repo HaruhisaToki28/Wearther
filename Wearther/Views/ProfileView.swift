@@ -20,10 +20,8 @@ struct ProfileView: View {
                         .foregroundColor(.black)
                     
                     Spacer()
-                    
-                    Button(action: {
-                        // Settings action
-                    }) {
+                    //Setting Button
+                    NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 24))
                             .foregroundColor(.black)
