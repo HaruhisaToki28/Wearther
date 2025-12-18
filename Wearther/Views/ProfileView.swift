@@ -102,7 +102,7 @@ struct ProfileView: View {
                                     .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                NavigationLink(destination: EditProfileView().environmentObject(authService)) {
+                                NavigationLink(destination: EditProfileView(currentUser: viewModel.user).environmentObject(authService)) {
                                     Text("プロフィールを編集")
                                         .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(.white)

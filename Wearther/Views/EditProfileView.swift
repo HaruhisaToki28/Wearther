@@ -13,6 +13,8 @@ struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: AuthService
     
+    let currentUser: AppUser
+    
     @State private var username: String = ""
     @State private var customID: String = ""
     @State private var bio: String = ""
@@ -42,10 +44,7 @@ struct EditProfileView: View {
             
             Section(header: Text("基本情報")) {
                 TextField("表示名", text: $username)
-                
                 TextField("ユーザーID", text: $customID)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
                 
                 VStack(alignment: .leading) {
                     Text("自己紹介")
@@ -53,13 +52,9 @@ struct EditProfileView: View {
                         .foregroundColor(.gray)
                     TextEditor(text: $bio)
                         .frame(minHeight: 100)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color(UIColor.separator), lineWidth: 0.5)
-                        )
                 }
-                .padding(.vertical, 5)
             }
+            .padding(.vertical, 5)
             
             if !errorMessage.isEmpty {
                 Text(errorMessage)
@@ -68,22 +63,19 @@ struct EditProfileView: View {
             }
         }
         .navigationTitle("プロフィール編集")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isSaving {
-                    ProgressView()
-                } else {
-                    Button("保存") {
-                        saveUserData()
-                    }
-                    .bold()
+                .onAppear {
+                    // 💡 画面が表示された瞬間に、現在の値を入力欄にセットする
+                    self.username = currentUser.displayName ?? ""
+                    self.customID = currentUser.username ?? ""
+                    self.bio = currentUser.bio ?? ""
                 }
-            }
-        }
-        .onAppear {
-            username = authService.user?.displayName ?? ""
-        }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("保存") {
+                            saveUserData()
+                        }
+                    }
+                }
     }
     
     func saveUserData() {
