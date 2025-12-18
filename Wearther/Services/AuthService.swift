@@ -9,6 +9,7 @@ import Foundation
 import FirebaseAuth
 import Combine
 import GoogleSignIn
+import FirebaseFirestore
 
 class AuthService: ObservableObject {
     
@@ -20,6 +21,24 @@ class AuthService: ObservableObject {
             self.user = user
             self.isAuthenticated = (user != nil)
         }
+    }
+    
+    //User Data
+    func createUserDocument(uid: String, email: String, username: String) async throws {
+        let db = Firestore.firestore()
+        
+        let newUser = [
+            "username": username,
+            "email": email,
+            "gender": "未設定",
+            "location": "未設定",
+            "temperatureTolerance": "普通",
+            "bio": "",
+            "profileImageUrl": "",
+            "createdAt": Timestamp()
+        ] as [String : Any]
+        
+        try await db.collection("users").document(uid).setData(newUser)
     }
     
     //Email LogIn

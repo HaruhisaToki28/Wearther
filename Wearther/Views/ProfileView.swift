@@ -9,13 +9,14 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Text(viewModel.user.username)
+                    Text(viewModel.user.username ?? "username")
                         .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.black)
                     
@@ -55,7 +56,7 @@ struct ProfileView: View {
                             VStack(spacing: 16) {
                                 HStack(alignment: .center, spacing: 16) { // アイコンと情報の間のスペースを16pxに
                                     // Avatar
-                                    AsyncImage(url: URL(string: viewModel.user.avatarURL)) { phase in
+                                    AsyncImage(url: URL(string: viewModel.user.avatarURL ?? "")) { phase in
                                         switch phase {
                                         case .success(let image):
                                             image
@@ -76,17 +77,17 @@ struct ProfileView: View {
                                     
                                     // Info Right
                                     VStack(alignment: .leading, spacing: 0) {
-                                        Text(viewModel.user.displayName)
+                                        Text(viewModel.user.displayName ?? " ")
                                             .font(.system(size: 18, weight: .bold))
                                             .foregroundColor(Color.black) // #000000
                                             .padding(.bottom, 5)
                                         
                                         HStack(spacing: 10) {
-                                            StatItem(value: formatCount(viewModel.user.postsCount), label: "投稿")
+                                            StatItem(value: formatCount(viewModel.user.postsCount ?? 0), label: "投稿")
                                             Divider().frame(height: 20)
-                                            StatItem(value: formatCount(viewModel.user.followersCount), label: "フォロワー")
+                                            StatItem(value: formatCount(viewModel.user.followersCount ?? 0), label: "フォロワー")
                                             Divider().frame(height: 20)
-                                            StatItem(value: formatCount(viewModel.user.followingCount), label: "フォロー中")
+                                            StatItem(value: formatCount(viewModel.user.followingCount ?? 0), label: "フォロー中")
                                         }
                                     }
                                 }
@@ -94,16 +95,14 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading) // ここを追加：全体を左寄せにする
                                 
                                 // Bio
-                                Text(viewModel.user.bio)
+                                Text(viewModel.user.bio ?? "")
                                     .font(.system(size: 11))
                                     .foregroundColor(Color.black) // #000000
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                Button(action: {
-                                    // Edit profile action
-                                }) {
+                                NavigationLink(destination: EditProfileView().environmentObject(authService)) {
                                     Text("プロフィールを編集")
                                         .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(.white)
@@ -111,7 +110,7 @@ struct ProfileView: View {
                                         .padding(.horizontal, 20)
                                         .background(
                                             Capsule()
-                                                .fill(Color(red: 0.18, green: 0.18, blue: 0.18)) // #2D2D2D
+                                                .fill(Color(red: 0.18, green: 0.18, blue: 0.18))
                                         )
                                 }
                             }
