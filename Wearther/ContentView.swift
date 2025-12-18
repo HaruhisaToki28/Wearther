@@ -12,12 +12,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authService.isAuthenticated {
-                VStack {
-                    Text("ログイン成功！")
-                    Button("ログアウト") {
-                        try? authService.signOut()
-                    }
-                }
+                MainTabView()
             } else {
                 SignInView()
             }

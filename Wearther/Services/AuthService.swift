@@ -22,11 +22,12 @@ class AuthService: ObservableObject {
         }
     }
     
+    //Email SignIn
     func signIn(email: String, password: String) async throws {
         _ = try await Auth.auth().signIn(withEmail: email, password: password)
     }
 
-
+    //Google SingIn
     func signInWithGoogle() async throws {
         guard let scene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {

@@ -10,7 +10,7 @@ import SwiftUI
 import GoogleSignInSwift 
 
 struct SignInView: View {
-    @EnvironmentObject var authService: AuthService // 認証サービスを受け取る
+    @EnvironmentObject var authService: AuthService 
     
     @State private var email = ""
     @State private var password = ""
@@ -38,6 +38,7 @@ struct SignInView: View {
             
             Divider()
             
+            //Google SingIn
             GoogleSignInButton {
                 Task {
                     try? await authService.signInWithGoogle()
