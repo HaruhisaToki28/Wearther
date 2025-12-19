@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C3078582EF3E1A70080294D /* Untitled-iOS-Default-1024x1024@1x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C3078572EF3E1A60080294D /* Untitled-iOS-Default-1024x1024@1x.png */; };
 		D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */; };
 		D71E27A32EF2E289005BE351 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D71E27A22EF2E289005BE351 /* FirebaseAuth */; };
 		D74D49942EE3F10600657E67 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D74D49932EE3F10200657E67 /* .gitignore */; };
@@ -32,6 +33,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4C3078572EF3E1A60080294D /* Untitled-iOS-Default-1024x1024@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Untitled-iOS-Default-1024x1024@1x.png"; sourceTree = "<group>"; };
 		4CA01E0A2EBDD5A800310C6C /* Wearther.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wearther.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CA01E172EBDD5A900310C6C /* WeartherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeartherTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CA01E212EBDD5A900310C6C /* WeartherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeartherUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -113,6 +115,7 @@
 				4CA01E0B2EBDD5A800310C6C /* Products */,
 				D7A716182EF2A8A60079A404 /* Recovered References */,
 				D71E27A12EF2E289005BE351 /* Frameworks */,
+				4C3078572EF3E1A60080294D /* Untitled-iOS-Default-1024x1024@1x.png */,
 			);
 			sourceTree = "<group>";
 		};
@@ -267,6 +270,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D74D49942EE3F10600657E67 /* .gitignore in Resources */,
+				4C3078582EF3E1A70080294D /* Untitled-iOS-Default-1024x1024@1x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,14 +454,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Wearther/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -467,6 +475,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Wearther.Wearther;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -482,14 +491,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Wearther/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -499,6 +512,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Wearther.Wearther;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
