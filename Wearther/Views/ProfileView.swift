@@ -4,12 +4,12 @@
 //
 //  Created by hato on 2025/11/07.
 //
+// メモ：プロフィールはいじらなくて良い
 
 import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
-    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         NavigationView {
@@ -29,21 +29,23 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.horizontal, 15)
-                .padding(.vertical, 10)
+                .padding(.vertical, 10) // Adjust based on status bar if needed, similar to HomeView
                 .background(
                     Color.white
                         .ignoresSafeArea(edges: .top)
                 )
                 
-                // セパレーター
+                // セパレーター（白背景の続き）
                 Rectangle()
                     .fill(Color.white)
                     .frame(height: 1)
                 
                 ZStack(alignment: .top) {
+                    // 背景色（下層）: ベースはグレー
                     Color(red: 0.97, green: 0.97, blue: 0.97)
                         .ignoresSafeArea()
                     
+                    // 背景色（上層）: 上部のバウンス領域用（白）
                     Color.white
                         .frame(height: 500)
                         .ignoresSafeArea()
@@ -52,7 +54,7 @@ struct ProfileView: View {
                         VStack(spacing: 0) {
                             // Profile Info Section
                             VStack(spacing: 16) {
-                                HStack(alignment: .center, spacing: 16) {
+                                HStack(alignment: .center, spacing: 16) { // アイコンと情報の間のスペースを16pxに
                                     // Avatar
                                     AsyncImage(url: URL(string: viewModel.user?.avatarURL ?? "")) { phase in
                                         switch phase {
@@ -70,14 +72,14 @@ struct ProfileView: View {
                                     .clipShape(Circle())
                                     .overlay(
                                         Circle()
-                                            .stroke(Color(red: 0.87, green: 0.89, blue: 0.89), lineWidth: 1)
+                                            .stroke(Color(red: 0.87, green: 0.89, blue: 0.89), lineWidth: 1) // #DDE2E2
                                     )
                                     
                                     // Info Right
                                     VStack(alignment: .leading, spacing: 0) {
-                                        Text(viewModel.user?.displayName ?? " ")
+                                        Text(viewModel.user?.displayName ?? "")
                                             .font(.system(size: 18, weight: .bold))
-                                            .foregroundColor(Color.black)
+                                            .foregroundColor(Color.black) // #000000
                                             .padding(.bottom, 5)
                                         
                                         HStack(spacing: 10) {
@@ -89,34 +91,34 @@ struct ProfileView: View {
                                         }
                                     }
                                 }
-                                .padding(.horizontal, 16)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16) // 左余白16px
+                                .frame(maxWidth: .infinity, alignment: .leading) // ここを追加：全体を左寄せにする
                                 
                                 // Bio
                                 Text(viewModel.user?.bio ?? "")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color.black)
+                                    .foregroundColor(Color.black) // #000000
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                if let user = viewModel.user {
-                                    NavigationLink(destination: EditProfileView(currentUser: user).environmentObject(authService)) {
-                                        Text("プロフィールを編集")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(.vertical, 8)
-                                            .padding(.horizontal, 20)
-                                            .background(
-                                                Capsule()
-                                                    .fill(Color(red: 0.18, green: 0.18, blue: 0.18))
-                                            )
-                                    }
+                                Button(action: {
+                                    // Edit profile action
+                                }) {
+                                    Text("プロフィールを編集")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 20)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(red: 0.18, green: 0.18, blue: 0.18)) // #2D2D2D
+                                        )
                                 }
                             }
                             .padding(.top, 15)
-                            .padding(.bottom, 0)
-                            .background(Color.white)
+                            .padding(.bottom, 0) // タブとの間隔をなくす
+                            .background(Color.white) // ここまで白背景にする
                             
                             // Tabs
                             HStack(spacing: 0) {
@@ -137,7 +139,7 @@ struct ProfileView: View {
                                 }
                             }
                             .padding(.horizontal, 0)
-                            .background(Color.white)
+                            .background(Color.white) // タブ部分も白背景
                             .overlay(
                                 Divider()
                                     .background(Color(red: 0.87, green: 0.87, blue: 0.87))
