@@ -11,16 +11,16 @@ import FirebaseFirestore
 struct AppUser: Codable, Identifiable {
     @DocumentID var id: String?
     
-    var username: String?
-    var displayName: String?
+    var email: String
+    var username: String
+    var displayName: String
     var avatarURL: String?
     var bio: String?
-    var postsCount: Int?
-    var followersCount: Int?
-    var followingCount: Int?
+    var postsCount: Int
+    var followersCount: Int
+    var followingCount: Int
     var gender: String?
     var location: String?
     var temperatureTolerance: String?
-    var email: String?
-    var createdAt: Date?
+    var createdAt: Date
 }

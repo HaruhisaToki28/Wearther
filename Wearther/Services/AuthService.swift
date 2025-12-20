@@ -47,8 +47,55 @@ class AuthService: ObservableObject {
     }
     
     //Email SignUp
-    func singUp(email: String, password: String) async throws {
-        _ = try await Auth.auth().createUser(withEmail: email, password: password)
+    func signUp(email: String, password: String, username: String, displayName: String) async throws {
+        let db = Firestore.firestore()
+        
+        // 1. まず Auth でユーザー作成
+        let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+        let uid = authResult.user.uid
+        
+        // 2. トランザクションで重複チェックと保存
+        let usernameRef = db.collection("usernames").document(username.lowercased())
+        let userRef = db.collection("users").document(uid)
+        
+        try await db.runTransaction({ (transaction, errorPointer) -> Any? in
+            let usernameDoc: DocumentSnapshot
+            do {
+                usernameDoc = try transaction.getDocument(usernameRef)
+            } catch let fetchError as NSError {
+                errorPointer?.pointee = fetchError
+                return nil
+            }
+            
+            // usernameが既に存在するか確認
+            if usernameDoc.exists {
+                let error = NSError(domain: "AppError", code: 0, userInfo: [NSLocalizedDescriptionKey: "このユーザーIDは既に使われています"])
+                errorPointer?.pointee = error
+                return nil
+            }
+            
+            // 重複がなければ、両方のコレクションに書き込み
+            transaction.setData([:], forDocument: usernameRef)
+            
+            let newUser: [String: Any] = [
+                "uid": uid,
+                "email": email,
+                "username": username,
+                "displayName": displayName,
+                "avatarURL": "",
+                "bio": "",
+                "postsCount": 0,
+                "followersCount": 0,
+                "followingCount": 0,
+                "gender": "未設定",
+                "location": "未設定",
+                "temperatureTolerance": "未設定",
+                "createdAt": Timestamp()
+            ]
+            transaction.setData(newUser, forDocument: userRef)
+            
+            return nil
+        })
     }
 
     //Google LogIn
