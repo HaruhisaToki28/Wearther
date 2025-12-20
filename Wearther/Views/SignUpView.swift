@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SignUpView: View {
     @EnvironmentObject var authService: AuthService
-    @StateObject var viewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
     
     @State private var email = ""
