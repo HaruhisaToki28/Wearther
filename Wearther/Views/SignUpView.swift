@@ -14,6 +14,9 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    @State private var username = ""
+    @State private var displayName = ""
+    
     @State private var errorMessage = ""
     
     var body: some View {
@@ -47,6 +50,30 @@ struct SignUpView: View {
             
             // Form Fields
             VStack(spacing: 15) {
+                // Username Field
+                TextField("ユーザーID（英数字のみ）", text: $username)
+                    .font(.system(size: 15, weight: .light))
+                    .padding(.horizontal, 20)
+                    .frame(height: 50)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color(hex: "2D2D2D"), lineWidth: 1)
+                    )
+                    .autocapitalization(.none)
+                
+                // Display Name Field
+                TextField("表示名", text: $displayName)
+                    .font(.system(size: 15, weight: .light))
+                    .padding(.horizontal, 20)
+                    .frame(height: 50)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color(hex: "2D2D2D"), lineWidth: 1)
+                    )
+                    .autocapitalization(.none)
+                
                 // Email Field
                 TextField("メールアドレス", text: $email)
                     .font(.system(size: 15, weight: .light))
@@ -131,10 +158,10 @@ struct SignUpView: View {
         
         Task {
             do {
-                try await authService.singUp(email: email, password: password)
+                try await authService.signUp(email: email, password: password, username: username.lowercased(), displayName: displayName)
                 dismiss()
             } catch {
-                errorMessage = "エラー: \(error.localizedDescription)"
+                errorMessage = error.localizedDescription
             }
         }
     }

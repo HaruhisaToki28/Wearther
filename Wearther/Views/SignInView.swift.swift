@@ -14,6 +14,7 @@ struct SignInView: View {
     
     @State private var email = ""
     @State private var password = ""
+    @State private var errorMessage: String? = nil
     
     var body: some View {
         NavigationView {
@@ -56,10 +57,23 @@ struct SignInView: View {
                 }
                 .padding(.horizontal, 16)
                 
+                // Error Message
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .font(.system(size: 13))
+                        .foregroundColor(.red)
+                        .padding(.top, 10)
+                }
+                
                 // Login Button
                 Button(action: {
                     Task {
-                        try? await authService.signIn(email: email, password: password)
+                        do {
+                            errorMessage = nil
+                            try await authService.signIn(email: email, password: password)
+                        } catch {
+                            errorMessage = error.localizedDescription
+                        }
                     }
                 }) {
                     Text("ログイン")
@@ -74,9 +88,7 @@ struct SignInView: View {
                 .padding(.top, 30)
                 
                 // Forgot Password Link
-                Button(action: {
-                    // 機能未実装 - 見た目のみ
-                }) {
+                NavigationLink(destination: ForgotPasswordView()) {
                     Text("パスワードを忘れた場合")
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color(hex: "2D2D2D"))
@@ -161,5 +173,3 @@ extension Color {
         )
     }
 }
-
-
