@@ -4,7 +4,6 @@
 //
 //  Created by hato on 2025/11/07.
 //
-// メモ：プロフィールはいじらなくて良い
 
 import SwiftUI
 

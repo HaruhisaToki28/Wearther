@@ -68,7 +68,7 @@ class AuthService: ObservableObject {
 
         let uid = result.user.uid
 
-        let db = Firestore.firestore()
+        //let db = Firestore.firestore()
         try await Firestore.firestore()
             .collection("users")
             .document(uid)
@@ -77,7 +77,15 @@ class AuthService: ObservableObject {
                 "email": email,
                 "username": username.lowercased(),
                 "displayName": displayName,
-                "createdAt": Timestamp()
+                "createdAt": Timestamp(),
+                "avatarURL": "",
+                "bio": "",
+                "postsCount": 0,
+                "followersCount": 0,
+                "followingCount": 0,
+                "gender": "未設定",
+                "location": "未設定",
+                "temperatureTolerance": "未設定",
             ])
 //        let newUser: [String: Any] = [
 //            "uid": uid,
