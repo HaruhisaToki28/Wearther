@@ -80,7 +80,7 @@ struct SignUpView: View {
                 try await authService.signUp(email: email, password: password, username: username.lowercased(), displayName: displayName)
                 dismiss()
             } catch {
-                errorMessage = "エラー: \(error.localizedDescription)"
+                errorMessage = error.localizedDescription
             }
         }
     }
