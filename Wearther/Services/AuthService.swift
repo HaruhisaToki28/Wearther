@@ -14,12 +14,21 @@ import FirebaseFirestore
 class AuthService: ObservableObject {
     
     @Published var user: User? = nil
+    @Published var currentUser: AppUser? = nil
     @Published var isAuthenticated: Bool = false
     
     init() {
         Auth.auth().addStateDidChangeListener { auth, user in
             self.user = user
             self.isAuthenticated = (user != nil)
+            
+            if user != nil {
+                Task {
+                    await self.fetchUser()
+                }
+            } else {
+                self.currentUser = nil
+            }
         }
     }
         
@@ -164,6 +173,36 @@ class AuthService: ObservableObject {
     // Password Reset
     func sendPasswordReset(email: String) async throws {
         try await Auth.auth().sendPasswordReset(withEmail: email)
+    }
+    
+    // Update User Data
+    func updateUserData(data: [String: Any]) async throws {
+        guard let uid = user?.uid else { return }
+        try await Firestore.firestore().collection("users").document(uid).updateData(data)
+        // Update local user data
+        await fetchUser()
+    }
+    
+    // Fetch User Data from Firestore
+    @MainActor
+    func fetchUser() async {
+        guard let uid = user?.uid else {
+            self.currentUser = nil
+            return
+        }
+        
+        do {
+            let document = try await Firestore.firestore().collection("users").document(uid).getDocument()
+            if document.exists {
+                self.currentUser = try document.data(as: AppUser.self)
+            } else {
+                print("User document does not exist")
+                self.currentUser = nil
+            }
+        } catch {
+            print("Error fetching user: \(error.localizedDescription)")
+            self.currentUser = nil
+        }
     }
 }
 
