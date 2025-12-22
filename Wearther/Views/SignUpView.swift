@@ -14,6 +14,9 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    @State private var username = ""
+    @State private var displayName = ""
+    
     @State private var errorMessage = ""
     
     var body: some View {
@@ -23,6 +26,15 @@ struct SignUpView: View {
                 .bold()
             
             VStack(spacing: 15) {
+                
+                TextField("ユーザーID（英数字のみ）", text: $username)
+                    .autocapitalization(.none)
+                    .textFieldStyle(.roundedBorder)
+                
+                TextField("表示名", text: $displayName)
+                    .textFieldStyle(.roundedBorder)
+                    .autocapitalization(.none)
+                
                 TextField("メールアドレス", text: $email)
                     .textFieldStyle(.roundedBorder)
                     .autocapitalization(.none)
@@ -65,10 +77,10 @@ struct SignUpView: View {
         
         Task {
             do {
-                try await authService.singUp(email: email, password: password)
+                try await authService.signUp(email: email, password: password, username: username.lowercased(), displayName: displayName)
                 dismiss()
             } catch {
-                errorMessage = "エラー: \(error.localizedDescription)"
+                errorMessage = error.localizedDescription
             }
         }
     }
