@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         NavigationView {
@@ -102,18 +103,18 @@ struct ProfileView: View {
                                     .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                Button(action: {
-                                    // Edit profile action
-                                }) {
-                                    Text("プロフィールを編集")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 20)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color(red: 0.18, green: 0.18, blue: 0.18)) // #2D2D2D
-                                        )
+                                if let user = viewModel.user {
+                                    NavigationLink(destination: EditProfileView(currentUser: user).environmentObject(authService)) {
+                                        Text("プロフィールを編集")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 20)
+                                            .background(
+                                                Capsule()
+                                                    .fill(Color(red: 0.18, green: 0.18, blue: 0.18))
+                                            )
+                                    }
                                 }
                             }
                             .padding(.top, 15)

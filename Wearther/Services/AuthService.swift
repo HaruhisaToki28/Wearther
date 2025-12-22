@@ -7,151 +7,133 @@
 
 import Foundation
 import FirebaseAuth
-import FirebaseFirestore
-import GoogleSignIn
 import Combine
+import GoogleSignIn
+import FirebaseFirestore 
 
-@MainActor
 class AuthService: ObservableObject {
-
+    
     @Published var user: User? = nil
     @Published var isAuthenticated: Bool = false
-
-    private let db = Firestore.firestore()
-
+    
     init() {
-        Auth.auth().addStateDidChangeListener { _, user in
+        Auth.auth().addStateDidChangeListener { auth, user in
             self.user = user
             self.isAuthenticated = (user != nil)
         }
     }
-
-    // MARK: - Email SignUp
-    func signUp(
-        email: String,
-        password: String,
-        username: String,
-        displayName: String
-    ) async throws {
-
-        // 1. Firebase Auth
-        let authResult = try await Auth.auth()
+        
+    /// Firestoreにユーザーの初期ドキュメントを作成する
+    private func createUserDocument(transaction: Transaction, uid: String, email: String, username: String, displayName: String) async throws {
+        let db = Firestore.firestore()
+        
+//        let newUser: [String: Any] = [
+//            "uid": uid,
+//            "email": email,
+//            "username": username,
+//            "displayName": displayName,
+//            "avatarURL": "",
+//            "bio": "",
+//            "postsCount": 0,
+//            "followersCount": 0,
+//            "followingCount": 0,
+//            "gender": "未設定",
+//            "location": "未設定",
+//            "temperatureTolerance": "未設定",
+//            "createdAt": Timestamp()
+//        ] as [String : Any]
+//        
+//        try await db.collection("users").document(uid).setData(newUser)
+        
+        try await db.collection("users")
+                .document(uid)
+                .setData([
+                    "uid": uid,
+                    "email": email,
+                    "username": username.lowercased(),
+                    "displayName": displayName,
+                    "createdAt": Timestamp()
+                ])
+    }
+    
+    //Email LogIn
+    func signIn(email: String, password: String) async throws {
+        _ = try await Auth.auth().signIn(withEmail: email, password: password)
+    }
+    
+    //Email SignUp
+    func signUp(email: String, password: String, username: String, displayName: String) async throws {
+        let result = try await Auth.auth()
             .createUser(withEmail: email, password: password)
 
-        let uid = authResult.user.uid
-        let usernameKey = username.lowercased()
+        let uid = result.user.uid
 
-        let usernameRef = db.collection("usernames").document(usernameKey)
-        let userRef = db.collection("users").document(uid)
-
-        // 2. Firestore Transaction
-        try await db.runTransaction { transaction, errorPointer in
-            
-            let usernameRef = self.db
-                .collection("usernames")
-                .document(username.lowercased())
-            
-            let userRef = self.db
-                .collection("users")
-                .document(uid)
-            
-            // username 重複チェック
-            do {
-                let snapshot = try transaction.getDocument(usernameRef)
-                if snapshot.exists {
-                    errorPointer?.pointee = NSError(
-                        domain: "AuthError",
-                        code: 0,
-                        userInfo: [
-                            NSLocalizedDescriptionKey: "このユーザーIDは既に使われています"
-                        ]
-                    )
-                    return false
-                }
-            } catch {
-                errorPointer?.pointee = error as NSError
-                return false
-            }
-            
-            // usernames
-            transaction.setData([:], forDocument: usernameRef)
-            
-            // users
-            transaction.setData(
-                Self.makeUserData(
-                    uid: uid,
-                    email: email,
-                    username: username,
-                    displayName: displayName
-                ),
-                forDocument: userRef
-            )
-            
-            return true
-        }
-
-
+        let db = Firestore.firestore()
+        try await Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .setData([
+                "uid": uid,
+                "email": email,
+                "username": username.lowercased(),
+                "displayName": displayName,
+                "createdAt": Timestamp()
+            ])
+//        let newUser: [String: Any] = [
+//            "uid": uid,
+//            "email": email,
+//            "username": username.lowercased(),
+//            "displayName": displayName,
+//            "avatarURL": "",
+//            "bio": "",
+//            "postsCount": 0,
+//            "followersCount": 0,
+//            "followingCount": 0,
+//            "gender": "未設定",
+//            "location": "未設定",
+//            "temperatureTolerance": "未設定",
+//            "createdAt": Timestamp()
+//        ]
+//        
+//        try await db.collection("users")
+//            .document(uid)
+//            .setData(newUser)
     }
-
-    // MARK: - User Data Builder
-    private static func makeUserData(
-        uid: String,
-        email: String,
-        username: String,
-        displayName: String
-    ) -> [String: Any] {
-
-        [
-            "uid": uid,
-            "email": email,
-            "username": username,
-            "displayName": displayName,
-            "avatarURL": "",
-            "bio": "",
-            "postsCount": 0,
-            "followersCount": 0,
-            "followingCount": 0,
-            "gender": "未設定",
-            "location": "未設定",
-            "temperatureTolerance": "未設定",
-            "createdAt": Timestamp()
-        ]
-    }
-
-    // MARK: - Email Login
-    func signIn(email: String, password: String) async throws {
-        try await Auth.auth()
-            .signIn(withEmail: email, password: password)
-    }
-
-    // MARK: - Google Login
+    
+    //Google LogIn
     func signInWithGoogle() async throws {
+        guard let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
+            throw NSError(domain: "AuthError", code: 0)
+        }
+        
+        guard let rootViewController = scene.windows
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else {
+            throw NSError(domain: "AuthError", code: 0)
+        }
+        
+        let result = try await GIDSignIn.sharedInstance.signIn(
+            withPresenting: rootViewController
+        )
+        
         guard
-            let scene = UIApplication.shared.connectedScenes
-                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-            let rootVC = scene.windows
-                .first(where: { $0.isKeyWindow })?
-                .rootViewController
+            let idToken = result.user.idToken?.tokenString
         else {
             throw NSError(domain: "AuthError", code: 0)
         }
-
-        let result = try await GIDSignIn.sharedInstance
-            .signIn(withPresenting: rootVC)
-
-        guard let idToken = result.user.idToken?.tokenString else {
-            throw NSError(domain: "AuthError", code: 0)
-        }
-
+        
+        let accessToken = result.user.accessToken.tokenString
+        
         let credential = GoogleAuthProvider.credential(
             withIDToken: idToken,
-            accessToken: result.user.accessToken.tokenString
+            accessToken: accessToken
         )
-
-        try await Auth.auth().signIn(with: credential)
+        
+        _ = try await Auth.auth().signIn(with: credential)
     }
-
-    // MARK: - Sign Out
+    
+    
     func signOut() throws {
         try Auth.auth().signOut()
     }
