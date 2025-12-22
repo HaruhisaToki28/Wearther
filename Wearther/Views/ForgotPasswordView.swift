@@ -16,31 +16,73 @@ struct ForgotPasswordView: View {
     @State private var isError = false
     @State private var isLoading = false
     
+    private var isButtonDisabled: Bool {
+        email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading
+    }
+    
     var body: some View {
-        VStack {
-            Text("パスワードを再設定")
-                .font(.title)
+        VStack(spacing: 0) {
+            // Custom Navigation Bar
+            ZStack {
+                // Back Button
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 25))
+                            .foregroundColor(.black)
+                    }
+                    .padding(.leading, 24)
+                    
+                    Spacer()
+                }
+                
+                // Title
+                Text("パスワード再設定")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            .frame(height: 50)
+            .background(Color.white)
+            
+            Spacer()
+                .frame(height: 40)
+            
+            // Description
+            Text("登録したメールアドレスを入力してください。\nパスワード再設定用のリンクをお送りします。")
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "666666"))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
                 .padding(.bottom, 30)
             
-            Text("登録したメールアドレスを入力してください。パスワード再設定用のリンクをお送りします。")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 20)
+            // Form Fields
+            VStack(spacing: 15) {
+                // Email Field
+                TextField("メールアドレス", text: $email)
+                    .font(.system(size: 15, weight: .light))
+                    .padding(.horizontal, 20)
+                    .frame(height: 50)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color(hex: "2D2D2D"), lineWidth: 1)
+                    )
+                    .autocapitalization(.none)
+                    .keyboardType(.emailAddress)
+            }
+            .padding(.horizontal, 16)
             
-            TextField("メールアドレス", text: $email)
-                .textFieldStyle(.roundedBorder)
-                .autocapitalization(.none)
-                .keyboardType(.emailAddress)
-                .padding(.horizontal)
-            
+            // Message
             if let message = message {
                 Text(message)
+                    .font(.system(size: 13))
                     .foregroundColor(isError ? .red : .green)
-                    .font(.caption)
-                    .padding(.top, 5)
+                    .padding(.top, 10)
             }
             
+            // Send Button
             Button(action: {
                 Task {
                     await sendResetLink()
@@ -48,16 +90,27 @@ struct ForgotPasswordView: View {
             }) {
                 if isLoading {
                     ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
                 } else {
                     Text("再設定リンクを送信")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
                 }
             }
-            .padding()
-            .disabled(email.isEmpty || isLoading)
+            .background(isButtonDisabled ? Color(hex: "AAAAAA") : Color(hex: "2D2D2D"))
+            .cornerRadius(39)
+            .padding(.horizontal, 16)
+            .padding(.top, 30)
+            .disabled(isButtonDisabled)
             
             Spacer()
         }
-        .padding()
+        .background(Color.white)
+        .navigationBarHidden(true)
     }
     
     private func sendResetLink() async {
@@ -69,6 +122,11 @@ struct ForgotPasswordView: View {
             try await authService.sendPasswordReset(email: email)
             message = "パスワード再設定メールを送信しました。"
             isError = false
+            
+            // 2秒後にサインイン画面に戻る
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                dismiss()
+            }
         } catch {
             message = error.localizedDescription
             isError = true
