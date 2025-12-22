@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var authService: AuthService
-    @Environment(\.dismiss) var dismiss // 戻るボタン用
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         List {
