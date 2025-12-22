@@ -14,6 +14,7 @@ struct SignInView: View {
     
     @State private var email = ""
     @State private var password = ""
+    @State private var errorMessage: String? = nil
     
     var body: some View {
         NavigationView {
@@ -29,12 +30,31 @@ struct SignInView: View {
                     SecureField("パスワード", text: $password)
                         .textFieldStyle(.roundedBorder)
                     
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.vertical, 5)
+                    }
+
                     Button("ログイン") {
                         Task {
-                            try? await authService.signIn(email: email, password: password)
+                            do {
+                                errorMessage = nil
+                                try await authService.signIn(email: email, password: password)
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
                         }
                     }
                     .padding()
+                    
+                    NavigationLink(destination: ForgotPasswordView()) {
+                        Text("パスワードを忘れた場合")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.bottom, 10)
                 }
                 .padding(.horizontal)
                 

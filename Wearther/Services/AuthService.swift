@@ -56,56 +56,71 @@ class AuthService: ObservableObject {
                 ])
     }
     
+
     //Email LogIn
     func signIn(email: String, password: String) async throws {
-        _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        do {
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        } catch let error as NSError {
+            if let errorCode = AuthErrorCode(rawValue: error.code) {
+                switch errorCode {
+                case .invalidEmail:
+                    throw AuthError.invalidEmailFormat
+                case .wrongPassword, .userNotFound:
+                    throw AuthError.invalidEmailOrPassword
+                case .networkError:
+                    throw AuthError.networkError
+                default:
+                    throw AuthError.unknown(error.localizedDescription)
+                }
+            }
+            throw AuthError.unknown(error.localizedDescription)
+        }
     }
     
     //Email SignUp
     func signUp(email: String, password: String, username: String, displayName: String) async throws {
-        let result = try await Auth.auth()
-            .createUser(withEmail: email, password: password)
+        do {
+            let result = try await Auth.auth()
+                .createUser(withEmail: email, password: password)
 
-        let uid = result.user.uid
+            let uid = result.user.uid
 
-        //let db = Firestore.firestore()
-        try await Firestore.firestore()
-            .collection("users")
-            .document(uid)
-            .setData([
-                "uid": uid,
-                "email": email,
-                "username": username.lowercased(),
-                "displayName": displayName,
-                "createdAt": Timestamp(),
-                "avatarURL": "",
-                "bio": "",
-                "postsCount": 0,
-                "followersCount": 0,
-                "followingCount": 0,
-                "gender": "未設定",
-                "location": "未設定",
-                "temperatureTolerance": "未設定",
-            ])
-//        let newUser: [String: Any] = [
-//            "uid": uid,
-//            "email": email,
-//            "username": username.lowercased(),
-//            "displayName": displayName,
-//            "avatarURL": "",
-//            "bio": "",
-//            "postsCount": 0,
-//            "followersCount": 0,
-//            "followingCount": 0,
-//            "gender": "未設定",
-//            "location": "未設定",
-//            "temperatureTolerance": "未設定",
-//            "createdAt": Timestamp()
-//        ]
-//        
-//        try await db.collection("users")
-//            .document(uid)
-//            .setData(newUser)
+            try await Firestore.firestore()
+                .collection("users")
+                .document(uid)
+                .setData([
+                    "uid": uid,
+                    "email": email,
+                    "username": username.lowercased(),
+                    "displayName": displayName,
+                    "createdAt": Timestamp(),
+                    "avatarURL": "",
+                    "bio": "",
+                    "postsCount": 0,
+                    "followersCount": 0,
+                    "followingCount": 0,
+                    "gender": "未設定",
+                    "location": "未設定",
+                    "temperatureTolerance": "未設定",
+                ])
+        } catch let error as NSError {
+            if let errorCode = AuthErrorCode(rawValue: error.code) {
+                switch errorCode {
+                case .emailAlreadyInUse:
+                    throw AuthError.emailAlreadyInUse
+                case .invalidEmail:
+                    throw AuthError.invalidEmailFormat
+                case .weakPassword:
+                    throw AuthError.weakPassword
+                case .networkError:
+                    throw AuthError.networkError
+                default:
+                    throw AuthError.unknown(error.localizedDescription)
+                }
+            }
+            throw AuthError.unknown(error.localizedDescription)
+        }
     }
     
     //Google LogIn
@@ -144,5 +159,36 @@ class AuthService: ObservableObject {
     
     func signOut() throws {
         try Auth.auth().signOut()
+    }
+
+    // Password Reset
+    func sendPasswordReset(email: String) async throws {
+        try await Auth.auth().sendPasswordReset(withEmail: email)
+    }
+}
+
+enum AuthError: LocalizedError {
+    case invalidEmailOrPassword
+    case emailAlreadyInUse
+    case invalidEmailFormat
+    case weakPassword
+    case networkError
+    case unknown(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidEmailOrPassword:
+            return "メールアドレスまたはパスワードが間違っています。"
+        case .emailAlreadyInUse:
+            return "このメールアドレスは既に使用されています。"
+        case .invalidEmailFormat:
+            return "メールアドレスの形式が正しくありません。"
+        case .weakPassword:
+            return "パスワードは6文字以上で入力してください。"
+        case .networkError:
+            return "ネットワークエラーが発生しました。通信環境を確認してください。"
+        case .unknown(let message):
+            return message
+        }
     }
 }
