@@ -9,20 +9,21 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
-    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Text(viewModel.user?.username ?? "読み込み中...")
+                    Text(viewModel.user.username)
                         .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.black)
                     
                     Spacer()
-                    //Setting Button
-                    NavigationLink(destination: SettingsView()) {
+                    
+                    Button(action: {
+                        // Settings action
+                    }) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 24))
                             .foregroundColor(.black)
@@ -56,7 +57,7 @@ struct ProfileView: View {
                             VStack(spacing: 16) {
                                 HStack(alignment: .center, spacing: 16) { // アイコンと情報の間のスペースを16pxに
                                     // Avatar
-                                    AsyncImage(url: URL(string: viewModel.user?.avatarURL ?? "")) { phase in
+                                    AsyncImage(url: URL(string: viewModel.user.avatarURL)) { phase in
                                         switch phase {
                                         case .success(let image):
                                             image
@@ -77,17 +78,17 @@ struct ProfileView: View {
                                     
                                     // Info Right
                                     VStack(alignment: .leading, spacing: 0) {
-                                        Text(viewModel.user?.displayName ?? "")
+                                        Text(viewModel.user.displayName)
                                             .font(.system(size: 18, weight: .bold))
                                             .foregroundColor(Color.black) // #000000
                                             .padding(.bottom, 5)
                                         
                                         HStack(spacing: 10) {
-                                            StatItem(value: formatCount(viewModel.user?.postsCount ?? 0), label: "投稿")
+                                            StatItem(value: formatCount(viewModel.user.postsCount), label: "投稿")
                                             Divider().frame(height: 20)
-                                            StatItem(value: formatCount(viewModel.user?.followersCount ?? 0), label: "フォロワー")
+                                            StatItem(value: formatCount(viewModel.user.followersCount), label: "フォロワー")
                                             Divider().frame(height: 20)
-                                            StatItem(value: formatCount(viewModel.user?.followingCount ?? 0), label: "フォロー中")
+                                            StatItem(value: formatCount(viewModel.user.followingCount), label: "フォロー中")
                                         }
                                     }
                                 }
@@ -95,25 +96,25 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading) // ここを追加：全体を左寄せにする
                                 
                                 // Bio
-                                Text(viewModel.user?.bio ?? "")
+                                Text(viewModel.user.bio)
                                     .font(.system(size: 11))
                                     .foregroundColor(Color.black) // #000000
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                if let user = viewModel.user {
-                                    NavigationLink(destination: EditProfileView(currentUser: user).environmentObject(authService)) {
-                                        Text("プロフィールを編集")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(.vertical, 8)
-                                            .padding(.horizontal, 20)
-                                            .background(
-                                                Capsule()
-                                                    .fill(Color(red: 0.18, green: 0.18, blue: 0.18))
-                                            )
-                                    }
+                                Button(action: {
+                                    // Edit profile action
+                                }) {
+                                    Text("プロフィールを編集")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 20)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(red: 0.18, green: 0.18, blue: 0.18)) // #2D2D2D
+                                        )
                                 }
                             }
                             .padding(.top, 15)
