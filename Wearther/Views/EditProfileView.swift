@@ -5,31 +5,31 @@
 //  Created by 阿久津咲千 on 2025/12/18.
 //
 
-import SwiftUI
-import FirebaseFirestore
 import FirebaseAuth
+import FirebaseFirestore
+import SwiftUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: AuthService
-    
+
     let currentUser: AppUser
-    
+
     @State private var username: String = ""
     @State private var customID: String = ""
     @State private var bio: String = ""
-    
+
     @State private var isSaving = false
     @State private var errorMessage = ""
-    
+
     @FocusState private var focusedField: Field?
-    
+
     enum Field {
         case displayName
         case userId
         case bio
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - Custom Navigation Bar
@@ -44,10 +44,10 @@ struct EditProfileView: View {
                             .foregroundColor(.black)
                     }
                     .padding(.leading, 24)
-                    
+
                     Spacer()
                 }
-                
+
                 // Title
                 Text("プロフィールを編集")
                     .font(.system(size: 18, weight: .bold))
@@ -61,7 +61,7 @@ struct EditProfileView: View {
                     .frame(height: 0.2),
                 alignment: .bottom
             )
-            
+
             ScrollView {
                 VStack(spacing: 0) {
                     // MARK: - Profile Icon
@@ -73,7 +73,7 @@ struct EditProfileView: View {
                                 Circle()
                                     .stroke(Color.white, lineWidth: 2)
                             )
-                        
+
                         Image(systemName: "person.fill")
                             .resizable()
                             .scaledToFit()
@@ -82,14 +82,14 @@ struct EditProfileView: View {
                     }
                     .padding(.top, 17)
                     .padding(.bottom, 23)
-                    
+
                     // MARK: - Form Fields
                     VStack(alignment: .leading, spacing: 15) {
                         // Section Label
                         Text("プロフィール")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color(hex: "2D2D2D"))
-                        
+
                         // Display Name Field
                         FloatingLabelTextField(
                             placeholder: "表示名を入力",
@@ -97,7 +97,7 @@ struct EditProfileView: View {
                             isFocused: focusedField == .displayName
                         )
                         .focused($focusedField, equals: .displayName)
-                        
+
                         // User ID Field
                         FloatingLabelTextField(
                             placeholder: "ユーザーIDを入力",
@@ -105,7 +105,7 @@ struct EditProfileView: View {
                             isFocused: focusedField == .userId
                         )
                         .focused($focusedField, equals: .userId)
-                        
+
                         // Bio Field
                         FloatingLabelTextEditor(
                             placeholder: "自己紹介を入力",
@@ -113,14 +113,14 @@ struct EditProfileView: View {
                             isFocused: focusedField == .bio
                         )
                         .focused($focusedField, equals: .bio)
-                        
+
                         // Error Message
                         if !errorMessage.isEmpty {
                             Text(errorMessage)
                                 .foregroundColor(.red)
                                 .font(.system(size: 13))
                         }
-                        
+
                         // Save Button
                         Button(action: {
                             saveUserData()
@@ -155,12 +155,20 @@ struct EditProfileView: View {
             self.bio = currentUser.bio ?? ""
         }
     }
-    
+
     func saveUserData() {
         guard let uid = authService.user?.uid else { return }
+
+        if username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || customID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
+            errorMessage = "表示名とユーザーIDは必須です。"
+            return
+        }
+
         isSaving = true
         let db = Firestore.firestore()
-        
+
         let updateData: [String: Any] = [
             "username": customID,
             "displayName": username,
@@ -168,9 +176,9 @@ struct EditProfileView: View {
             "createdAt": Timestamp(),
             "postsCount": 0,
             "followersCount": 0,
-            "followingCount": 0
+            "followingCount": 0,
         ]
-        
+
         db.collection("users").document(uid).setData(updateData, merge: true) { error in
             isSaving = false
             if let error = error {
@@ -187,11 +195,11 @@ private struct FloatingLabelTextField: View {
     let placeholder: String
     @Binding var text: String
     let isFocused: Bool
-    
+
     private var showFloatingLabel: Bool {
         isFocused || !text.isEmpty
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             if showFloatingLabel {
@@ -200,10 +208,14 @@ private struct FloatingLabelTextField: View {
                     .font(.system(size: 10))
                     .foregroundColor(Color(hex: "AAAAAA").opacity(0.67))
             }
-            
+
             // Text Field (always present)
             TextField(showFloatingLabel ? "" : placeholder, text: $text)
-                .font(.system(size: showFloatingLabel ? 12 : 15, weight: showFloatingLabel ? .semibold : .regular))
+                .font(
+                    .system(
+                        size: showFloatingLabel ? 12 : 15,
+                        weight: showFloatingLabel ? .semibold : .regular)
+                )
                 .foregroundColor(showFloatingLabel ? .black : Color(hex: "AAAAAA").opacity(0.67))
         }
         .padding(.horizontal, 18)
@@ -219,17 +231,17 @@ private struct FloatingLabelTextEditor: View {
     let placeholder: String
     @Binding var text: String
     let isFocused: Bool
-    
+
     private var showFloatingLabel: Bool {
         isFocused || !text.isEmpty
     }
-    
+
     var body: some View {
         ZStack(alignment: .topLeading) {
             // Background
             RoundedRectangle(cornerRadius: 15)
                 .fill(Color.white)
-            
+
             // Placeholder (shown when empty and not focused)
             if text.isEmpty && !isFocused {
                 Text(placeholder)
@@ -238,7 +250,7 @@ private struct FloatingLabelTextEditor: View {
                     .padding(.horizontal, 22)
                     .padding(.top, 15)
             }
-            
+
             // Content
             VStack(alignment: .leading, spacing: 4) {
                 // Floating Label (shown when focused or has text)
@@ -247,7 +259,7 @@ private struct FloatingLabelTextEditor: View {
                         .font(.system(size: 10))
                         .foregroundColor(Color(hex: "AAAAAA").opacity(0.67))
                 }
-                
+
                 // TextEditor (always present for tappability)
                 TextEditor(text: $text)
                     .font(.system(size: 12, weight: .semibold))
