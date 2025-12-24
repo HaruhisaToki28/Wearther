@@ -175,46 +175,26 @@ struct EditProfileView: View {
         isSaving = true
         let db = Firestore.firestore()
 
-        // Check for uniqueness
-        db.collection("users")
-            .whereField("username", isEqualTo: trimmedCustomID)
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    isSaving = false
-                    errorMessage = "エラーが発生しました: \(error.localizedDescription)"
-                    return
-                }
 
-                // If a document exists and it's not the current user's document
-                if let documents = snapshot?.documents, !documents.isEmpty {
-                    for doc in documents {
-                        if doc.documentID != uid {
-                            isSaving = false
-                            errorMessage = "使用されているユーザーネームです"
-                            return
-                        }
-                    }
-                }
+        
+        let updateData: [String: Any] = [
+            "username": trimmedCustomID.lowercased(),
+            "displayName": trimmedUsername,
+            "bio": bio,
+        ]
 
-                // Proceed with saving
-                let updateData: [String: Any] = [
-                    "username": trimmedCustomID,
-                    "displayName": trimmedUsername,
-                    "bio": bio,
-                    "postsCount": 0,
-                    "followersCount": 0,
-                    "followingCount": 0,
-                ]
-
-                db.collection("users").document(uid).setData(updateData, merge: true) { error in
-                    isSaving = false
-                    if let error = error {
-                        errorMessage = "保存に失敗しました: \(error.localizedDescription)"
-                    } else {
-                        dismiss()
-                    }
+        db.collection("users").document(uid).setData(updateData, merge: true) { error in
+            isSaving = false
+            if let error = error {
+                errorMessage = "保存に失敗しました: \(error.localizedDescription)"
+            } else {
+                // ローカルのユーザーデータを更新
+                Task {
+                    await authService.fetchUser()
                 }
+                dismiss()
             }
+        }
     }
 }
 
