@@ -159,34 +159,62 @@ struct EditProfileView: View {
     func saveUserData() {
         guard let uid = authService.user?.uid else { return }
 
-        if username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || customID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        {
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedCustomID = customID.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmedUsername.isEmpty || trimmedCustomID.isEmpty {
             errorMessage = "表示名とユーザーIDは必須です。"
+            return
+        }
+
+        if trimmedCustomID.count < 4 {
+            errorMessage = "ユーザーIDは4文字以上で入力してください。"
             return
         }
 
         isSaving = true
         let db = Firestore.firestore()
 
-        let updateData: [String: Any] = [
-            "username": customID,
-            "displayName": username,
-            "bio": bio,
-            "createdAt": Timestamp(),
-            "postsCount": 0,
-            "followersCount": 0,
-            "followingCount": 0,
-        ]
+        // Check for uniqueness
+        db.collection("users")
+            .whereField("username", isEqualTo: trimmedCustomID)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    isSaving = false
+                    errorMessage = "エラーが発生しました: \(error.localizedDescription)"
+                    return
+                }
 
-        db.collection("users").document(uid).setData(updateData, merge: true) { error in
-            isSaving = false
-            if let error = error {
-                errorMessage = "保存に失敗しました: \(error.localizedDescription)"
-            } else {
-                dismiss()
+                // If a document exists and it's not the current user's document
+                if let documents = snapshot?.documents, !documents.isEmpty {
+                    for doc in documents {
+                        if doc.documentID != uid {
+                            isSaving = false
+                            errorMessage = "使用されているユーザーネームです"
+                            return
+                        }
+                    }
+                }
+
+                // Proceed with saving
+                let updateData: [String: Any] = [
+                    "username": trimmedCustomID,
+                    "displayName": trimmedUsername,
+                    "bio": bio,
+                    "postsCount": 0,
+                    "followersCount": 0,
+                    "followingCount": 0,
+                ]
+
+                db.collection("users").document(uid).setData(updateData, merge: true) { error in
+                    isSaving = false
+                    if let error = error {
+                        errorMessage = "保存に失敗しました: \(error.localizedDescription)"
+                    } else {
+                        dismiss()
+                    }
+                }
             }
-        }
     }
 }
 
