@@ -27,10 +27,41 @@ struct SettingsView: View {
     @State private var showingTemperatureActionSheet = false
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // MARK: - User Profile Card
-                HStack(spacing: 15) {
+        VStack(spacing: 0) {
+            // MARK: - Custom Navigation Bar
+            ZStack {
+                // Back Button
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 25))
+                            .foregroundColor(.black)
+                    }
+                    .padding(.leading, 24)
+                    
+                    Spacer()
+                }
+                
+                // Title
+                Text("アカウント設定")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            .frame(height: 50)
+            .background(Color.white)
+            .overlay(
+                Rectangle()
+                    .fill(Color(hex: "DDDDDD"))
+                    .frame(height: 0.2),
+                alignment: .bottom
+            )
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    // MARK: - User Profile Card
+                    HStack(spacing: 15) {
                     // Avatar
                     AsyncImage(url: URL(string: authService.currentUser?.avatarURL ?? authService.user?.photoURL?.absoluteString ?? "")) { phase in
                         switch phase {
@@ -205,10 +236,10 @@ struct SettingsView: View {
                 Spacer().frame(height: 50)
             }
             .padding(.horizontal, 16)
+            }
         }
         .background(Color(hex: "F8F8F8"))
-        .navigationTitle("アカウント設定")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         // Residence Selection
         .sheet(isPresented: $showingResidencePicker) {
             NavigationView {
