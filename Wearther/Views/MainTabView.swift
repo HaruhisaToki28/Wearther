@@ -46,7 +46,7 @@ struct MainTabView: View {
                 case .home:
                     HomeView()
                 case .weather:
-                    Text("Weather View")
+                    WeatherView()
                 case .camera:
                     Text("Camera View")
                 case .clothes:
