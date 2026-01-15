@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedTab: FeedTab = .recommended
+    @State private var showNotifications = false
     
     enum FeedTab {
         case recommended
@@ -17,6 +18,7 @@ struct HomeView: View {
     }
     
     var body: some View {
+        NavigationStack {
         GeometryReader { geometry in
             let safeBottom = geometry.safeAreaInsets.bottom
             let targetWidth: CGFloat = 360
@@ -33,9 +35,13 @@ struct HomeView: View {
                     // Right Bell Icon
                     HStack {
                         Spacer()
-                        Image(systemName: "bell")
-                            .font(.system(size: 24))
-                            .foregroundColor(.black)
+                        Button(action: {
+                            showNotifications = true
+                        }) {
+                            Image(systemName: "bell")
+                                .font(.system(size: 24))
+                                .foregroundColor(.black)
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -91,6 +97,11 @@ struct HomeView: View {
                 }
             }
             .background(Color.white)
+        }
+        .navigationDestination(isPresented: $showNotifications) {
+            NotificationView()
+        }
+        .navigationBarHidden(true)
         }
     }
 }
