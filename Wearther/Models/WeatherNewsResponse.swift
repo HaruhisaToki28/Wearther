@@ -149,3 +149,4 @@ enum WeatherCodeConverter {
         }
     }
 }
+

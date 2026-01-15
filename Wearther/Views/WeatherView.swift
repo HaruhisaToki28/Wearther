@@ -15,6 +15,63 @@ struct WeatherView: View {
     
     @State private var locationName: String = "現在地を取得中..."
     
+    // モックのOutfitデータ（実際にはViewModelから取得）
+    private let mockOutfits: [OutfitRecommendation] = [
+        OutfitRecommendation(
+            userId: "1", userName: "蘭丸",
+            userAvatarURL: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+            userHeight: 175,
+            imageURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
+            weatherSnapshot: WeatherSnapshot(temperature: 19.0, condition: .partlyCloudy),
+            likes: 120, isLiked: false
+        ),
+        OutfitRecommendation(
+            userId: "2", userName: "太郎",
+            userAvatarURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
+            userHeight: 175,
+            imageURL: "https://images.unsplash.com/photo-1492447166138-50c3889fccb1",
+            weatherSnapshot: WeatherSnapshot(temperature: 18.0, condition: .cloudy),
+            likes: 98, isLiked: false
+        ),
+        OutfitRecommendation(
+            userId: "3", userName: "花子",
+            userAvatarURL: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+            userHeight: 165,
+            imageURL: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f",
+            weatherSnapshot: WeatherSnapshot(temperature: 16.0, condition: .rainy),
+            likes: 155, isLiked: true
+        ),
+        OutfitRecommendation(
+            userId: "4", userName: "次郎",
+            userAvatarURL: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91",
+            userHeight: 180,
+            imageURL: "https://images.unsplash.com/photo-1503341504253-dff4815485f1",
+            weatherSnapshot: WeatherSnapshot(temperature: 14.0, condition: .cloudy),
+            likes: 64, isLiked: false
+        )
+    ]
+    
+    // WeatherNewsデータをWeatherモデルに変換
+    private var currentWeatherModel: Weather? {
+        guard let weatherData = weatherService.currentWeather,
+              let current = weatherData.srf.first,
+              let today = weatherData.mrf.first else {
+            return nil
+        }
+        
+        return Weather(
+            location: locationName,
+            condition: current.weatherCondition,
+            temperature: Double(today.maxtemp),
+            minTemperature: Double(today.mintemp),
+            feelsLike: Double(current.temp),
+            precipitationChance: today.pop,
+            humidity: Double(current.rhum),
+            windSpeed: Double(current.wndspd),
+            pressure: Double(current.arpress)
+        )
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - Header
@@ -35,16 +92,12 @@ struct WeatherView: View {
             
             // MARK: - Content
             ScrollView {
-                VStack(spacing: 20) {
-                    // Current Weather Card
-                    if let weather = weatherService.currentWeather,
-                       let current = weather.srf.first {
-                        CurrentWeatherCard(
-                            location: locationName,
-                            forecast: current,
-                            todayMax: weather.mrf.first?.maxtemp,
-                            todayMin: weather.mrf.first?.mintemp,
-                            pop: weather.mrf.first?.pop
+                VStack(spacing: 16) {
+                    // Compact Weather Hero Card
+                    if let weather = currentWeatherModel {
+                        CompactWeatherHeroCard(
+                            weather: weather,
+                            hourlyForecasts: Array(weatherService.getTodayForecast().prefix(6))
                         )
                     } else if weatherService.isLoading {
                         LoadingWeatherCard()
@@ -52,21 +105,16 @@ struct WeatherView: View {
                         EmptyWeatherCard(message: weatherService.errorMessage ?? "天気データを取得できません")
                     }
                     
-                    // Hourly Forecast
-                    if !weatherService.getTodayForecast().isEmpty {
-                        HourlyForecastCard(forecasts: weatherService.getTodayForecast())
-                    }
-                    
-                    // Weekly Forecast
+                    // Weather + Outfit Section
                     if !weatherService.getWeeklyForecast().isEmpty {
-                        WeeklyForecastCard(forecasts: weatherService.getWeeklyForecast())
+                        WeeklyWithOutfitSection(
+                            forecasts: weatherService.getWeeklyForecast(),
+                            outfits: mockOutfits
+                        )
                     }
                     
-                    // Weather Details
-                    if let weather = weatherService.currentWeather,
-                       let current = weather.srf.first {
-                        WeatherDetailsCard(forecast: current)
-                    }
+                    // Outfit Recommendations for Today's Weather
+                    TodayOutfitSection(outfits: mockOutfits)
                     
                     Spacer().frame(height: 30)
                 }
@@ -97,7 +145,6 @@ struct WeatherView: View {
     }
     
     private func fetchWeatherForLocation(_ location: CLLocation) async {
-        // Get location name
         let geocoder = CLGeocoder()
         if let placemark = try? await geocoder.reverseGeocodeLocation(location).first {
             let city = placemark.locality ?? placemark.administrativeArea ?? ""
@@ -112,327 +159,369 @@ struct WeatherView: View {
     }
 }
 
-// MARK: - Current Weather Card
-private struct CurrentWeatherCard: View {
-    let location: String
-    let forecast: ShortRangeForecast
-    let todayMax: Float?
-    let todayMin: Float?
-    let pop: Int?
+// MARK: - Compact Weather Hero Card
+private struct CompactWeatherHeroCard: View {
+    let weather: Weather
+    let hourlyForecasts: [ShortRangeForecast]
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Location
-            Text(location)
-                .font(.system(size: 23, weight: .bold))
-                .foregroundColor(Color(hex: "2D2D2D"))
-            
-            HStack(alignment: .center, spacing: 20) {
+        VStack(spacing: 0) {
+            // Main weather info - compact
+            HStack(spacing: 16) {
                 // Weather Icon
-                WeatherIconView(condition: forecast.weatherCondition, size: 80)
+                CompactWeatherIcon(condition: weather.condition)
+                    .frame(width: 60, height: 60)
                 
-                // Temperature & Info
-                VStack(alignment: .leading, spacing: 8) {
-                    // Condition
-                    Text(WeatherCodeConverter.toDescription(forecast.wx))
-                        .font(.system(size: 15, weight: .bold))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(weather.location)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "68717B"))
+                    
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text("\(Int(weather.temperature))°")
+                            .font(.system(size: 42, weight: .bold))
+                            .foregroundColor(Color(hex: "FF2539"))
+                        
+                        Text("/")
+                            .font(.system(size: 20))
+                            .foregroundColor(Color(hex: "DDDDDD"))
+                        
+                        Text("\(Int(weather.minTemperature))°")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(Color(hex: "3582DC"))
+                    }
+                }
+                
+                Spacer()
+                
+                // Precipitation & Condition
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text(weather.condition.rawValue)
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundColor(Color(hex: "2D2D2D"))
                     
-                    // Temperature
-                    HStack(alignment: .bottom, spacing: 8) {
-                        // High
-                        HStack(alignment: .bottom, spacing: 0) {
-                            Text("\(Int(todayMax ?? forecast.temp))")
-                                .font(.system(size: 35, weight: .bold))
-                                .foregroundColor(Color(hex: "FF2539"))
-                            Text("°C")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(Color(hex: "FF2539"))
-                                .padding(.bottom, 4)
-                        }
-                        
-                        Rectangle()
-                            .fill(Color(hex: "E5E5E5"))
-                            .frame(width: 1, height: 26)
-                        
-                        // Low
-                        HStack(alignment: .bottom, spacing: 0) {
-                            Text("\(Int(todayMin ?? forecast.temp))")
-                                .font(.system(size: 35, weight: .bold))
-                                .foregroundColor(Color(hex: "3582DC"))
-                            Text("°C")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(Color(hex: "3582DC"))
-                                .padding(.bottom, 4)
-                        }
-                    }
-                    
-                    // Precipitation
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "drop.fill")
-                            .font(.system(size: 10))
+                            .font(.system(size: 11))
                             .foregroundColor(Color(hex: "08C4FA"))
-                        
-                        Text("降水確率 \(pop ?? 0)%")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color(hex: "2D2D2D"))
+                        Text("\(weather.precipitationChance)%")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "68717B"))
                     }
                 }
             }
-        }
-        .padding(.vertical, 21)
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .cornerRadius(28)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
-    }
-}
-
-// MARK: - Hourly Forecast Card
-private struct HourlyForecastCard: View {
-    let forecasts: [ShortRangeForecast]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("時間ごとの天気")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(hex: "2D2D2D"))
-                .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(Array(forecasts.prefix(24).enumerated()), id: \.element.id) { index, forecast in
-                        HourlyForecastItem(forecast: forecast, isNow: index == 0)
+            // Hourly mini forecast
+            if !hourlyForecasts.isEmpty {
+                Divider()
+                    .padding(.horizontal, 16)
+                
+                HStack(spacing: 0) {
+                    ForEach(Array(hourlyForecasts.enumerated()), id: \.element.id) { index, forecast in
+                        MiniHourlyItem(forecast: forecast, isNow: index == 0)
+                        if index < hourlyForecasts.count - 1 {
+                            Spacer()
+                        }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
             }
         }
-        .padding(.vertical, 16)
         .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
+        .cornerRadius(24)
+        .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
     }
 }
 
-private struct HourlyForecastItem: View {
+private struct MiniHourlyItem: View {
     let forecast: ShortRangeForecast
     let isNow: Bool
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             Text(isNow ? "今" : forecast.formattedTime)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(hex: "68717B"))
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(isNow ? Color(hex: "2D2D2D") : Color(hex: "68717B"))
             
-            WeatherIconView(condition: forecast.weatherCondition, size: 28)
+            CompactWeatherIcon(condition: forecast.weatherCondition)
+                .frame(width: 22, height: 22)
             
             Text("\(Int(forecast.temp))°")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(Color(hex: "2D2D2D"))
-            
-            HStack(spacing: 2) {
-                Image(systemName: "drop.fill")
-                    .font(.system(size: 8))
-                    .foregroundColor(Color(hex: "08C4FA"))
-                Text("\(Int(forecast.prec))%")
-                    .font(.system(size: 9))
-                    .foregroundColor(Color(hex: "68717B"))
-            }
-        }
-        .frame(width: 50)
-    }
-}
-
-// MARK: - Weekly Forecast Card
-private struct WeeklyForecastCard: View {
-    let forecasts: [MediumRangeForecast]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("週間天気予報")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(Color(hex: "2D2D2D"))
-            
-            VStack(spacing: 0) {
-                ForEach(Array(forecasts.enumerated()), id: \.element.id) { index, forecast in
-                    WeeklyForecastRow(forecast: forecast, isToday: index == 0)
-                    
-                    if index < forecasts.count - 1 {
-                        Divider()
-                            .padding(.horizontal, 16)
-                    }
-                }
-            }
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 16)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
     }
 }
 
-private struct WeeklyForecastRow: View {
-    let forecast: MediumRangeForecast
-    let isToday: Bool
-    
-    var body: some View {
-        HStack {
-            // Date
-            HStack(spacing: 4) {
-                Text(isToday ? "今日" : forecast.formattedDate)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "2D2D2D"))
-                    .frame(width: 45, alignment: .leading)
-                
-                Text(forecast.dayOfWeek)
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "68717B"))
-                    .frame(width: 20)
-            }
-            
-            Spacer()
-            
-            // Weather Icon
-            WeatherIconView(condition: forecast.weatherCondition, size: 28)
-            
-            Spacer()
-            
-            // Precipitation
-            HStack(spacing: 2) {
-                Image(systemName: "drop.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "08C4FA"))
-                Text("\(forecast.pop)%")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "68717B"))
-            }
-            .frame(width: 45)
-            
-            Spacer()
-            
-            // Temperature
-            HStack(spacing: 8) {
-                Text("\(Int(forecast.maxtemp))°")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color(hex: "FF2539"))
-                    .frame(width: 35, alignment: .trailing)
-                
-                Text("\(Int(forecast.mintemp))°")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color(hex: "3582DC"))
-                    .frame(width: 35, alignment: .trailing)
-            }
-        }
-        .padding(.vertical, 12)
-    }
-}
-
-// MARK: - Weather Details Card
-private struct WeatherDetailsCard: View {
-    let forecast: ShortRangeForecast
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("詳細情報")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(hex: "2D2D2D"))
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 12) {
-                WeatherDetailItem(icon: "thermometer", title: "体感温度", value: "\(Int(forecast.temp))°C")
-                WeatherDetailItem(icon: "humidity", title: "湿度", value: "\(forecast.rhum)%")
-                WeatherDetailItem(icon: "wind", title: "風速", value: String(format: "%.1fm/s", forecast.wndspd))
-                WeatherDetailItem(icon: "gauge", title: "気圧", value: "\(Int(forecast.arpress))hPa")
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
-    }
-}
-
-private struct WeatherDetailItem: View {
-    let icon: String
-    let title: String
-    let value: String
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(Color(hex: "68717B"))
-                .frame(width: 30)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(hex: "68717B"))
-                
-                Text(value)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color(hex: "2D2D2D"))
-            }
-            
-            Spacer()
-        }
-        .padding(12)
-        .background(Color(hex: "F8F8F8"))
-        .cornerRadius(12)
-    }
-}
-
-// MARK: - Weather Icon View
-private struct WeatherIconView: View {
+private struct CompactWeatherIcon: View {
     let condition: WeatherCondition
-    let size: CGFloat
     
     var body: some View {
         Image(systemName: condition.symbolName)
             .symbolRenderingMode(.palette)
             .foregroundStyle(paletteColors[0], paletteColors[1], paletteColors[2])
-            .font(.system(size: size))
+            .font(.system(size: 28, weight: .medium))
     }
     
     private var paletteColors: [Color] {
         switch condition {
         case .sunny:
-            return [
-                Color(red: 1.0, green: 0.74, blue: 0.20),
-                Color(red: 1.0, green: 0.55, blue: 0.14),
-                Color(red: 1.0, green: 0.87, blue: 0.53)
-            ]
+            return [Color(hex: "FFB833"), Color(hex: "FF8C22"), Color(hex: "FFDE87")]
         case .partlyCloudy:
-            return [
-                Color(red: 0.82, green: 0.86, blue: 0.94),
-                Color(red: 1.0, green: 0.74, blue: 0.20),
-                Color(red: 1.0, green: 0.55, blue: 0.14)
-            ]
+            return [Color(hex: "D1DBF0"), Color(hex: "FFB833"), Color(hex: "FF8C22")]
         case .cloudy:
-            return [
-                Color(red: 0.80, green: 0.83, blue: 0.90),
-                Color(red: 0.66, green: 0.70, blue: 0.78),
-                Color(red: 0.92, green: 0.94, blue: 0.97)
-            ]
+            return [Color(hex: "CCD4E6"), Color(hex: "A8B3C7"), Color(hex: "EBEEF7")]
         case .rainy:
-            return [
-                Color(red: 0.75, green: 0.82, blue: 0.95),
-                Color(hex: "08C4FA"),
-                Color(red: 0.35, green: 0.56, blue: 0.95)
-            ]
+            return [Color(hex: "BFD1F2"), Color(hex: "08C4FA"), Color(hex: "5A8FF2")]
         case .snowy:
-            return [
-                Color(red: 0.88, green: 0.93, blue: 0.99),
-                Color.white,
-                Color(red: 0.74, green: 0.82, blue: 0.97)
-            ]
+            return [Color(hex: "E0EDFC"), Color.white, Color(hex: "BCD1F7")]
         }
+    }
+}
+
+// MARK: - Weekly With Outfit Section
+private struct WeeklyWithOutfitSection: View {
+    let forecasts: [MediumRangeForecast]
+    let outfits: [OutfitRecommendation]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("週間予報 & おすすめコーデ")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color(hex: "2D2D2D"))
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(Array(forecasts.prefix(5).enumerated()), id: \.element.id) { index, forecast in
+                        WeeklyOutfitCard(
+                            forecast: forecast,
+                            outfit: outfits.indices.contains(index) ? outfits[index] : nil,
+                            isToday: index == 0
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct WeeklyOutfitCard: View {
+    let forecast: MediumRangeForecast
+    let outfit: OutfitRecommendation?
+    let isToday: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Outfit Image Background
+            ZStack(alignment: .bottomLeading) {
+                if let outfit = outfit, let urlString = outfit.imageURL, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            gradientPlaceholder
+                        }
+                    }
+                } else {
+                    gradientPlaceholder
+                }
+            }
+            .frame(width: 100, height: 120)
+            .clipped()
+            .overlay(
+                // Weather overlay
+                VStack {
+                    Spacer()
+                    HStack {
+                        CompactWeatherIcon(condition: forecast.weatherCondition)
+                            .frame(width: 20, height: 20)
+                        Spacer()
+                    }
+                    .padding(8)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.black.opacity(0.5), Color.clear],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
+                }
+            )
+            
+            // Date & Temp
+            VStack(spacing: 4) {
+                Text(isToday ? "今日" : forecast.formattedDate)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(hex: "2D2D2D"))
+                
+                HStack(spacing: 4) {
+                    Text("\(Int(forecast.maxtemp))°")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Color(hex: "FF2539"))
+                    Text("\(Int(forecast.mintemp))°")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Color(hex: "3582DC"))
+                }
+                
+                HStack(spacing: 2) {
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 8))
+                        .foregroundColor(Color(hex: "08C4FA"))
+                    Text("\(forecast.pop)%")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(hex: "68717B"))
+                }
+            }
+            .padding(.vertical, 10)
+            .frame(width: 100)
+            .background(Color.white)
+        }
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 4)
+    }
+    
+    private var gradientPlaceholder: some View {
+        LinearGradient(
+            colors: [Color(hex: "E8EDF5"), Color(hex: "D1DBF0")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(
+            Image(systemName: "tshirt.fill")
+                .font(.system(size: 24))
+                .foregroundColor(Color(hex: "68717B").opacity(0.4))
+        )
+    }
+}
+
+// MARK: - Today Outfit Section
+private struct TodayOutfitSection: View {
+    let outfits: [OutfitRecommendation]
+    @State private var likedStates: [UUID: Bool] = [:]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("今日の気温に合うコーデ")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Color(hex: "2D2D2D"))
+                
+                Spacer()
+                
+                Button(action: {}) {
+                    Text("もっと見る")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(hex: "68717B"))
+                }
+            }
+            
+            // 2列グリッド
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10)
+            ], spacing: 10) {
+                ForEach(outfits.prefix(4)) { outfit in
+                    CompactOutfitCard(
+                        recommendation: outfit,
+                        isLiked: likedStates[outfit.id] ?? outfit.isLiked,
+                        onLikeTapped: {
+                            likedStates[outfit.id] = !(likedStates[outfit.id] ?? outfit.isLiked)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+private struct CompactOutfitCard: View {
+    let recommendation: OutfitRecommendation
+    let isLiked: Bool
+    let onLikeTapped: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Image
+            ZStack(alignment: .topTrailing) {
+                if let urlString = recommendation.imageURL, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .overlay(ProgressView())
+                        }
+                    }
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.1))
+                }
+                
+                // Like button overlay
+                Button(action: onLikeTapped) {
+                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                        .font(.system(size: 14))
+                        .foregroundColor(isLiked ? .red : .white)
+                        .padding(8)
+                        .background(Color.black.opacity(0.2))
+                        .clipShape(Circle())
+                }
+                .padding(8)
+            }
+            .frame(height: 140)
+            .clipped()
+            
+            // Info
+            HStack(spacing: 6) {
+                // Avatar
+                AsyncImage(url: URL(string: recommendation.userAvatarURL ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    default:
+                        Circle()
+                            .fill(Color.gray.opacity(0.2))
+                    }
+                }
+                .frame(width: 20, height: 20)
+                .clipShape(Circle())
+                
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(recommendation.userName)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(Color(hex: "2D2D2D"))
+                        .lineLimit(1)
+                    
+                    Text("\(Int(recommendation.weatherSnapshot.temperature))°C")
+                        .font(.system(size: 9))
+                        .foregroundColor(Color(hex: "AAAAAA"))
+                }
+                
+                Spacer()
+                
+                // Weather condition icon
+                CompactWeatherIcon(condition: recommendation.weatherSnapshot.condition)
+                    .frame(width: 16, height: 16)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+        }
+        .background(Color.white)
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.03), radius: 10, x: 0, y: 4)
     }
 }
 
@@ -441,17 +530,17 @@ private struct LoadingWeatherCard: View {
     var body: some View {
         VStack(spacing: 16) {
             ProgressView()
-                .scaleEffect(1.5)
+                .scaleEffect(1.2)
             
             Text("天気データを取得中...")
-                .font(.system(size: 14))
+                .font(.system(size: 13))
                 .foregroundColor(Color(hex: "68717B"))
         }
-        .padding(.vertical, 40)
+        .padding(.vertical, 36)
         .frame(maxWidth: .infinity)
         .background(Color.white)
-        .cornerRadius(28)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
+        .cornerRadius(24)
+        .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -459,22 +548,22 @@ private struct EmptyWeatherCard: View {
     let message: String
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Image(systemName: "icloud.slash")
-                .font(.system(size: 40))
+                .font(.system(size: 32))
                 .foregroundColor(Color(hex: "68717B"))
             
             Text(message)
-                .font(.system(size: 14))
+                .font(.system(size: 13))
                 .foregroundColor(Color(hex: "68717B"))
                 .multilineTextAlignment(.center)
         }
-        .padding(.vertical, 40)
+        .padding(.vertical, 36)
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity)
         .background(Color.white)
-        .cornerRadius(28)
-        .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
+        .cornerRadius(24)
+        .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -505,7 +594,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location error: \(error.localizedDescription)")
-        // 位置情報取得に失敗した場合、デフォルト座標を使用
         if location == nil {
             location = defaultLocation
         }
@@ -516,7 +604,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         if authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways {
             manager.requestLocation()
         } else if authorizationStatus == .denied || authorizationStatus == .restricted {
-            // 権限が拒否された場合もデフォルト座標を使用
             location = defaultLocation
         }
     }

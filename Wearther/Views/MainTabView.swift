@@ -76,7 +76,7 @@ struct MainTabView: View {
                     }
                 }
                 .padding(.top, 10) // アイコン上の余白
-                .padding(.bottom, 25) // アイコン下の余白（SafeArea分も考慮）
+                .padding(.bottom, 10) // アイコン下の余白（SafeArea分も考慮）
                 .frame(maxWidth: .infinity)
                 .background(Color.white) // タブバーの背景色
             }
