@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>現在地の天気情報を取得するために位置情報を使用します。</string>
-	<key>GIDClientID</key>
-	<string>370786959623-1fkjveidkpsqohjr8tag0ssggdlou98a.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -17,5 +13,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>370786959623-1fkjveidkpsqohjr8tag0ssggdlou98a.apps.googleusercontent.com</string>
 </dict>
 </plist>

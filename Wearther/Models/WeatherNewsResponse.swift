@@ -37,23 +37,27 @@ struct ShortRangeForecast: Codable, Identifiable {
     }
     
     var formattedTime: String {
-        // "202312231200" -> "12:00"
-        guard date.count >= 12 else { return "--:--" }
-        let hourIndex = date.index(date.startIndex, offsetBy: 8)
-        let minuteIndex = date.index(date.startIndex, offsetBy: 10)
-        let hour = String(date[hourIndex..<minuteIndex])
-        let minute = String(date[minuteIndex...])
-        return "\(hour):\(minute)"
+        // 複数の日付形式に対応
+        if let parsedDate = DateParserHelper.parseDate(date) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm"
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+            return formatter.string(from: parsedDate)
+        }
+        return "--:--"
     }
     
     var formattedDate: String {
-        // "202312231200" -> "12/23"
-        guard date.count >= 8 else { return "--/--" }
-        let monthIndex = date.index(date.startIndex, offsetBy: 4)
-        let dayIndex = date.index(date.startIndex, offsetBy: 6)
-        let month = String(date[monthIndex..<dayIndex])
-        let day = String(date[dayIndex..<date.index(dayIndex, offsetBy: 2)])
-        return "\(Int(month) ?? 0)/\(Int(day) ?? 0)"
+        // 複数の日付形式に対応
+        if let parsedDate = DateParserHelper.parseDate(date) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "M/d"
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+            return formatter.string(from: parsedDate)
+        }
+        return "--/--"
     }
 }
 
@@ -71,25 +75,74 @@ struct MediumRangeForecast: Codable, Identifiable {
     }
     
     var formattedDate: String {
-        // "20231223" -> "12/23"
-        guard date.count >= 8 else { return "--/--" }
-        let monthIndex = date.index(date.startIndex, offsetBy: 4)
-        let dayIndex = date.index(date.startIndex, offsetBy: 6)
-        let month = String(date[monthIndex..<dayIndex])
-        let day = String(date[dayIndex...])
-        return "\(Int(month) ?? 0)/\(Int(day) ?? 0)"
+        // 複数の日付形式に対応
+        if let parsedDate = DateParserHelper.parseDate(date) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "M/d"
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+            return formatter.string(from: parsedDate)
+        }
+        return "--/--"
     }
     
     var dayOfWeek: String {
-        guard date.count >= 8 else { return "" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd"
-        guard let dateObj = formatter.date(from: date) else { return "" }
+        if let parsedDate = DateParserHelper.parseDate(date) {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+            formatter.dateFormat = "E"
+            return formatter.string(from: parsedDate)
+        }
+        return ""
+    }
+}
+
+// MARK: - Date Parser Helper
+enum DateParserHelper {
+    // 複数の日付形式に対応するパーサー
+    static func parseDate(_ dateString: String) -> Date? {
+        let formatters: [DateFormatter] = [
+            // ISO 8601 形式 (2023-12-23T15:00:00)
+            createFormatter("yyyy-MM-dd'T'HH:mm:ss"),
+            // ISO 8601 形式 タイムゾーン付き
+            createFormatter("yyyy-MM-dd'T'HH:mm:ssZ"),
+            createFormatter("yyyy-MM-dd'T'HH:mm:ssXXXXX"),
+            // コンパクト形式 (202312231500)
+            createFormatter("yyyyMMddHHmm"),
+            // コンパクト日付のみ (20231223)
+            createFormatter("yyyyMMdd"),
+            // ハイフン区切り (2023-12-23)
+            createFormatter("yyyy-MM-dd"),
+        ]
         
-        let weekdayFormatter = DateFormatter()
-        weekdayFormatter.locale = Locale(identifier: "ja_JP")
-        weekdayFormatter.dateFormat = "E"
-        return weekdayFormatter.string(from: dateObj)
+        for formatter in formatters {
+            if let date = formatter.date(from: dateString) {
+                return date
+            }
+        }
+        
+        // ISO8601DateFormatterも試す
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+        
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+        
+        return nil
+    }
+    
+    private static func createFormatter(_ format: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
+        return formatter
     }
 }
 
@@ -149,4 +202,3 @@ enum WeatherCodeConverter {
         }
     }
 }
-
