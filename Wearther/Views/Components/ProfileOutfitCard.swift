@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ProfileOutfitCard: View {
-    let recommendation: OutfitRecommendation
+    let post: Post
     
     var body: some View {
         // 画像のみを表示するシンプルなカード
-        RemoteOutfitImage(
-            urlString: recommendation.imageURL,
+        RemotePostImage(
+            urlString: post.imageURL,
             width: 115,
-            height: 193 // 元のカードの高さ(154 + padding + footer)に合わせて調整、または画像アスペクト比に応じて設定
+            height: 154
         )
         .background(Color.white)
         .cornerRadius(10)
@@ -23,7 +23,7 @@ struct ProfileOutfitCard: View {
     }
 }
 
-private struct RemoteOutfitImage: View {
+private struct RemotePostImage: View {
     let urlString: String?
     let width: CGFloat
     let height: CGFloat
@@ -47,6 +47,7 @@ private struct RemoteOutfitImage: View {
             }
         }
         .frame(width: width, height: height)
+        .cornerRadius(10)
     }
     
     private var imageURL: URL? {
@@ -67,13 +68,17 @@ private struct RemoteOutfitImage: View {
 
 #Preview {
     ProfileOutfitCard(
-        recommendation: OutfitRecommendation(
+        post: Post(
             userId: "1",
-            userName: "user",
-            userHeight: 175,
-            weatherSnapshot: WeatherSnapshot(temperature: 20.0, condition: .sunny),
-            likes: 10,
-            isLiked: false
+            imageURL: "https://example.com/image.jpg",
+            title: "Test",
+            caption: "Test caption",
+            weather: .sunny,
+            temperature: 20,
+            location: PostLocation(name: "Tokyo"),
+            userGender: "男性",
+            userAge: 25,
+            userHeight: 175
         )
     )
     .padding()

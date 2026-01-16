@@ -41,13 +41,8 @@ struct ProfileView: View {
                     .frame(height: 1)
                 
                 ZStack(alignment: .top) {
-                    // 背景色（下層）: ベースはグレー
+                    // 背景色: グレー
                     Color(red: 0.97, green: 0.97, blue: 0.97)
-                        .ignoresSafeArea()
-                    
-                    // 背景色（上層）: 上部のバウンス領域用（白）
-                    Color.white
-                        .frame(height: 500)
                         .ignoresSafeArea()
                     
                     ScrollView {
@@ -118,7 +113,10 @@ struct ProfileView: View {
                             }
                             .padding(.top, 15)
                             .padding(.bottom, 0) // タブとの間隔をなくす
-                            .background(Color.white) // ここまで白背景にする
+                            .background(
+                                Color.white
+                                    .padding(.top, -500) // 上方向に拡張（バウンス時用）
+                            )
                             
                             // Tabs
                             HStack(spacing: 0) {
@@ -148,13 +146,10 @@ struct ProfileView: View {
                             )
                             
                             // Grid Content
-                            let displayPosts = viewModel.selectedTab == .posts ? viewModel.posts : viewModel.likedPosts
-                            OutfitGrid(
-                                recommendations: displayPosts,
-                                onLikeTapped: { _ in },
-                                onLoadMore: {}
+                            ProfilePostsGrid(
+                                posts: viewModel.selectedTab == .posts ? viewModel.userPosts : viewModel.likedPosts
                             )
-                            .padding(.top, 2)
+                            .padding(.top, 5)
                             .padding(.bottom, 100)
                         }
                         .background(Color(red: 0.97, green: 0.97, blue: 0.97))
@@ -166,6 +161,13 @@ struct ProfileView: View {
                 }
             }
             .navigationBarHidden(true)
+            .onChange(of: viewModel.selectedTab) { oldValue, newValue in
+                if newValue == .likes && viewModel.likedPosts.isEmpty {
+                    Task {
+                        await viewModel.fetchLikedPosts()
+                    }
+                }
+            }
         }
     }
     
@@ -212,6 +214,40 @@ private struct TabButton: View {
             }
             .frame(maxWidth: .infinity) // 均等に広げる
             .contentShape(Rectangle())
+        }
+    }
+}
+
+// MARK: - Profile Posts Grid
+private struct ProfilePostsGrid: View {
+    let posts: [Post]
+    
+    private let columns = [
+        GridItem(.flexible(), spacing: 18),
+        GridItem(.flexible(), spacing: 18),
+        GridItem(.flexible(), spacing: 18)
+    ]
+    
+    var body: some View {
+        if posts.isEmpty {
+            // Empty State
+            VStack(spacing: 16) {
+                Image(systemName: "camera")
+                    .font(.system(size: 40))
+                    .foregroundColor(Color(hex: "AAAAAA"))
+                Text("まだ投稿がありません")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "888888"))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 60)
+        } else {
+            LazyVGrid(columns: columns, spacing: 5) {
+                ForEach(posts) { post in
+                    ProfileOutfitCard(post: post)
+                }
+            }
+            .padding(.horizontal, 15)
         }
     }
 }
