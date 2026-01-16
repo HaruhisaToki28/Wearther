@@ -20,6 +20,8 @@ struct AppUser: Codable, Identifiable {
     var followersCount: Int
     var followingCount: Int
     var gender: String?
+    var age: Int?
+    var height: Int?
     var location: String?
     var temperatureTolerance: String?
     var createdAt: Date

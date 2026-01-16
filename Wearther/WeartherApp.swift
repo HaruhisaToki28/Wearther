@@ -16,7 +16,7 @@ class AppLifecycleHandler: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
-        print("🚀 Firebase has been configured!")
+        print("Firebase has been configured!")
         return true
     }
 
@@ -34,11 +34,10 @@ struct WeartherApp: App {
     @UIApplicationDelegateAdaptor(AppLifecycleHandler.self) var delegate
     @StateObject private var authService = AuthService()
 
-        var body: some Scene {
-            WindowGroup {
-                ContentView()
-
-                    .environmentObject(authService)
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(authService)
         }
     }
 }

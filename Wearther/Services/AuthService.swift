@@ -31,43 +31,44 @@ class AuthService: ObservableObject {
             }
         }
     }
-
-    /// Firestoreにユーザーの初期ドキュメントを作成する
-    private func createUserDocument(
-        transaction: Transaction, uid: String, email: String, username: String, displayName: String
-    ) async throws {
+    
+    // MARK: - Email Validation
+    
+    /// メールアドレスが既に登録されているかチェック
+    func isEmailAvailable(_ email: String) async throws -> Bool {
+        do {
+            let methods = try await Auth.auth().fetchSignInMethods(forEmail: email)
+            return methods.isEmpty
+        } catch let error as NSError {
+            if let errorCode = AuthErrorCode(rawValue: error.code) {
+                switch errorCode {
+                case .invalidEmail:
+                    throw AuthError.invalidEmailFormat
+                case .networkError:
+                    throw AuthError.networkError
+                default:
+                    // エラーが発生した場合は利用可能として扱う（後のcreateUserでエラーになる）
+                    return true
+                }
+            }
+            return true
+        }
+    }
+    
+    // MARK: - Username Validation
+    
+    /// ユーザーIDの重複チェック
+    func isUsernameAvailable(_ username: String) async throws -> Bool {
         let db = Firestore.firestore()
-
-        //        let newUser: [String: Any] = [
-        //            "uid": uid,
-        //            "email": email,
-        //            "username": username,
-        //            "displayName": displayName,
-        //            "avatarURL": "",
-        //            "bio": "",
-        //            "postsCount": 0,
-        //            "followersCount": 0,
-        //            "followingCount": 0,
-        //            "gender": "未設定",
-        //            "location": "未設定",
-        //            "temperatureTolerance": "未設定",
-        //            "createdAt": Timestamp()
-        //        ] as [String : Any]
-        //
-        //        try await db.collection("users").document(uid).setData(newUser)
-
-        try await db.collection("users")
-            .document(uid)
-            .setData([
-                "uid": uid,
-                "email": email,
-                "username": username.lowercased(),
-                "displayName": displayName,
-                "createdAt": Timestamp(),
-            ])
+        let snapshot = try await db.collection("users")
+            .whereField("username", isEqualTo: username.lowercased())
+            .getDocuments()
+        
+        return snapshot.documents.isEmpty
     }
 
-    //Email LogIn
+    // MARK: - Email LogIn
+    
     func signIn(email: String, password: String) async throws {
         do {
             _ = try await Auth.auth().signIn(withEmail: email, password: password)
@@ -88,7 +89,70 @@ class AuthService: ObservableObject {
         }
     }
 
-    //Email SignUp
+    // MARK: - Email SignUp (Multi-step flow)
+    
+    /// 新規登録（多段階フロー用）
+    func signUpWithProfile(
+        email: String,
+        password: String,
+        username: String,
+        displayName: String,
+        gender: String,
+        age: Int,
+        height: Int
+    ) async throws {
+        do {
+            let result = try await Auth.auth()
+                .createUser(withEmail: email, password: password)
+            
+            let uid = result.user.uid
+            
+            // Firestoreにユーザードキュメントを作成
+            try await Firestore.firestore()
+                .collection("users")
+                .document(uid)
+                .setData([
+                    "uid": uid,
+                    "email": email,
+                    "username": username.lowercased(),
+                    "displayName": displayName,
+                    "createdAt": Timestamp(),
+                    "avatarURL": "",
+                    "bio": "",
+                    "postsCount": 0,
+                    "followersCount": 0,
+                    "followingCount": 0,
+                    "gender": gender,
+                    "age": age,
+                    "height": height,
+                    "location": "未設定",
+                    "temperatureTolerance": "未設定",
+                ])
+            
+            // メール確認メールを送信
+            try await result.user.sendEmailVerification()
+            
+        } catch let error as NSError {
+            if let errorCode = AuthErrorCode(rawValue: error.code) {
+                switch errorCode {
+                case .emailAlreadyInUse:
+                    throw AuthError.emailAlreadyInUse
+                case .invalidEmail:
+                    throw AuthError.invalidEmailFormat
+                case .weakPassword:
+                    throw AuthError.weakPassword
+                case .networkError:
+                    throw AuthError.networkError
+                default:
+                    throw AuthError.unknown(error.localizedDescription)
+                }
+            }
+            throw AuthError.unknown(error.localizedDescription)
+        }
+    }
+    
+    // MARK: - Legacy SignUp (keeping for compatibility)
+    
     func signUp(email: String, password: String, username: String, displayName: String) async throws
     {
         do {
@@ -112,6 +176,8 @@ class AuthService: ObservableObject {
                     "followersCount": 0,
                     "followingCount": 0,
                     "gender": "未設定",
+                    "age": 0,
+                    "height": 0,
                     "location": "未設定",
                     "temperatureTolerance": "未設定",
                 ])
@@ -134,7 +200,8 @@ class AuthService: ObservableObject {
         }
     }
 
-    //Google LogIn
+    // MARK: - Google LogIn
+    
     func signInWithGoogle() async throws {
         guard
             let scene = UIApplication.shared.connectedScenes
@@ -193,6 +260,8 @@ class AuthService: ObservableObject {
                     "followersCount": 0,
                     "followingCount": 0,
                     "gender": "未設定",
+                    "age": 0,
+                    "height": 0,
                     "location": "未設定",
                     "temperatureTolerance": "未設定",
                 ])
@@ -206,12 +275,14 @@ class AuthService: ObservableObject {
         try Auth.auth().signOut()
     }
 
-    // Password Reset
+    // MARK: - Password Reset
+    
     func sendPasswordReset(email: String) async throws {
         try await Auth.auth().sendPasswordReset(withEmail: email)
     }
 
-    // Update User Data
+    // MARK: - Update User Data
+    
     func updateUserData(data: [String: Any]) async throws {
         guard let uid = user?.uid else { return }
         try await Firestore.firestore().collection("users").document(uid).updateData(data)
@@ -219,7 +290,8 @@ class AuthService: ObservableObject {
         await fetchUser()
     }
 
-    // Fetch User Data from Firestore
+    // MARK: - Fetch User Data from Firestore
+    
     @MainActor
     func fetchUser() async {
         guard let uid = user?.uid else {
@@ -249,6 +321,7 @@ enum AuthError: LocalizedError {
     case invalidEmailFormat
     case weakPassword
     case networkError
+    case usernameAlreadyInUse
     case unknown(String)
 
     var errorDescription: String? {
@@ -263,6 +336,8 @@ enum AuthError: LocalizedError {
             return "パスワードは6文字以上で入力してください。"
         case .networkError:
             return "ネットワークエラーが発生しました。通信環境を確認してください。"
+        case .usernameAlreadyInUse:
+            return "このユーザーIDは既に使用されています。"
         case .unknown(let message):
             return message
         }
