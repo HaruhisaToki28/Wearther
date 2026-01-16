@@ -16,8 +16,8 @@ class ProfileViewModel: ObservableObject {
     @Published var user: AppUser? = nil
     @Published var isLoading = false
     
-    @Published var posts: [OutfitRecommendation] = []
-    @Published var likedPosts: [OutfitRecommendation] = []
+    @Published var userPosts: [Post] = []
+    @Published var likedPosts: [Post] = []
     @Published var selectedTab: ProfileTab = .posts
     
     enum ProfileTab {
@@ -26,17 +26,19 @@ class ProfileViewModel: ObservableObject {
     }
     
     private var db = Firestore.firestore()
-    private var listener: ListenerRegistration?
+    private var userListener: ListenerRegistration?
+    private var postsListener: ListenerRegistration?
     
 
     init() {
         fetchUserData()
+        fetchUserPosts()
     }
 
     func fetchUserData() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
-        db.collection("users").document(uid).addSnapshotListener { snapshot, error in
+        userListener = db.collection("users").document(uid).addSnapshotListener { snapshot, error in
             guard let document = snapshot, document.exists else {
                 print("ユーザーデータが見つかりません")
                 return
@@ -49,16 +51,63 @@ class ProfileViewModel: ObservableObject {
             }
         }
     }
+    
+    func fetchUserPosts() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        postsListener = db.collection("posts")
+            .whereField("userId", isEqualTo: uid)
+            .order(by: "createdAt", descending: true)
+            .addSnapshotListener { snapshot, error in
+                guard let documents = snapshot?.documents else {
+                    print("投稿データが見つかりません: \(error?.localizedDescription ?? "")")
+                    return
+                }
+                
+                self.userPosts = documents.compactMap { doc in
+                    try? doc.data(as: Post.self)
+                }
+            }
+    }
+    
+    func fetchLikedPosts() async {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        do {
+            // Get liked post IDs
+            let likedSnapshot = try await db.collection("users")
+                .document(uid)
+                .collection("likedPosts")
+                .order(by: "likedAt", descending: true)
+                .getDocuments()
+            
+            let postIds = likedSnapshot.documents.map { $0.documentID }
+            
+            // Fetch each post
+            var posts: [Post] = []
+            for postId in postIds {
+                if let post = try? await db.collection("posts").document(postId).getDocument(as: Post.self) {
+                    posts.append(post)
+                }
+            }
+            
+            self.likedPosts = posts
+        } catch {
+            print("いいねした投稿の取得エラー: \(error)")
+        }
+    }
         
     func refresh() async {
         isLoading = true
         fetchUserData()
-        try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+        fetchUserPosts()
+        await fetchLikedPosts()
         isLoading = false
     }
         
 
     deinit {
-        listener?.remove()
+        userListener?.remove()
+        postsListener?.remove()
     }
 }
