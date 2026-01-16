@@ -15,5 +15,11 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>370786959623-1fkjveidkpsqohjr8tag0ssggdlou98a.apps.googleusercontent.com</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>投稿する写真を選択するために写真ライブラリへのアクセスが必要です。</string>
+	<key>NSCameraUsageDescription</key>
+	<string>コーディネート写真を撮影するためにカメラへのアクセスが必要です。</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>現在地の天気情報を取得するために位置情報へのアクセスが必要です。</string>
 </dict>
 </plist>

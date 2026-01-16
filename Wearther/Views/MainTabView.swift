@@ -37,6 +37,7 @@ enum Tab: String, CaseIterable {
 
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
+    @State private var showingNewPost = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -48,7 +49,8 @@ struct MainTabView: View {
                 case .weather:
                     WeatherView()
                 case .camera:
-                    Text("Camera View")
+                    // カメラタブは直接画面を表示せず、シートで表示
+                    Color.clear
                 case .clothes:
                     Text("Clothes View")
                 case .profile:
@@ -66,7 +68,12 @@ struct MainTabView: View {
                 HStack(spacing: 48) { // アイコン間の間隔
                     ForEach(Tab.allCases, id: \.self) { tab in
                         Button(action: {
-                            selectedTab = tab
+                            if tab == .camera {
+                                // カメラタブは新規投稿画面をモーダル表示
+                                showingNewPost = true
+                            } else {
+                                selectedTab = tab
+                            }
                         }) {
                             Image(systemName: selectedTab == tab ? tab.filledSymbol : tab.symbol)
                                 .font(.system(size: 23)) // アイコンサイズ
@@ -82,6 +89,9 @@ struct MainTabView: View {
             }
         }
         .ignoresSafeArea(.keyboard)
+        .fullScreenCover(isPresented: $showingNewPost) {
+            NewPostView()
+        }
     }
 }
 
