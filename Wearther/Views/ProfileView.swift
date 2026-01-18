@@ -10,6 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var authService: AuthService
+    @State private var showingEditProfile = false
     
     var body: some View {
         NavigationView {
@@ -97,8 +98,10 @@ struct ProfileView: View {
                                     .padding(.horizontal, 16) // 左余白16px
                                 
                                 // Edit Profile Button
-                                if let user = viewModel.user {
-                                    NavigationLink(destination: EditProfileView(currentUser: user).environmentObject(authService)) {
+                                if viewModel.user != nil {
+                                    Button(action: {
+                                        showingEditProfile = true
+                                    }) {
                                         Text("プロフィールを編集")
                                             .font(.system(size: 10, weight: .bold))
                                             .foregroundColor(.white)
@@ -167,6 +170,12 @@ struct ProfileView: View {
                         await viewModel.fetchLikedPosts()
                     }
                 }
+            }
+        }
+        .fullScreenCover(isPresented: $showingEditProfile) {
+            if let user = viewModel.user {
+                EditProfileView(currentUser: user)
+                    .environmentObject(authService)
             }
         }
     }
