@@ -8,7 +8,16 @@
 import Foundation
 import FirebaseFirestore
 
-struct Post: Codable, Identifiable {
+struct Post: Codable, Identifiable, Hashable {
+    // Hashable conformance
+    static func == (lhs: Post, rhs: Post) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
     @DocumentID var id: String?
     
     var userId: String

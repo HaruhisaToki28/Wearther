@@ -13,7 +13,7 @@ struct ProfileView: View {
     @State private var showingEditProfile = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -164,6 +164,9 @@ struct ProfileView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(for: Post.self) { post in
+                PostDetailView(post: post)
+            }
             .onChange(of: viewModel.selectedTab) { oldValue, newValue in
                 if newValue == .likes && viewModel.likedPosts.isEmpty {
                     Task {
@@ -254,7 +257,7 @@ private struct ProfilePostsGrid: View {
             LazyVGrid(columns: columns, spacing: 5) {
                 ForEach(posts) { post in
                     // 投稿詳細画面への遷移
-                    NavigationLink(destination: PostDetailView(post: post)) {
+                    NavigationLink(value: post) {
                         ProfileOutfitCard(post: post)
                     }
                     .buttonStyle(PlainButtonStyle())

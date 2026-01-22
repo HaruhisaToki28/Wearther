@@ -50,6 +50,9 @@ struct FashionView: View {
             }
             .background(Color(hex: "F8F8F8"))
             .navigationBarHidden(true)
+            .navigationDestination(for: Post.self) { post in
+                PostDetailView(post: post)
+            }
         }
         .task {
             await viewModel.loadAllData(userId: authService.currentUser?.id)
@@ -111,7 +114,7 @@ struct FashionView: View {
                     HStack(spacing: 11) {
                         ForEach(viewModel.trendPosts) { post in
                             // 投稿詳細画面への遷移
-                            NavigationLink(destination: PostDetailView(post: post)) {
+                            NavigationLink(value: post) {
                                 TrendPostCard(
                                     post: post,
                                     user: viewModel.trendPostUsers[post.userId]
@@ -181,7 +184,7 @@ struct FashionView: View {
                     HStack(spacing: 11) {
                         ForEach(viewModel.rankingPosts) { rankedPost in
                             // 投稿詳細画面への遷移
-                            NavigationLink(destination: PostDetailView(post: rankedPost.post)) {
+                            NavigationLink(value: rankedPost.post) {
                                 RankingPostCard(
                                     rankedPost: rankedPost,
                                     onLikeTapped: {
