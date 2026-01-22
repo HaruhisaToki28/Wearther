@@ -164,24 +164,27 @@ struct PostDetailView: View {
     /// ユーザー情報、いいね、共有、フォローボタンを表示
     private var userInfoRow: some View {
         HStack {
-            // 左側: アバターとユーザー情報
-            HStack(spacing: 8) {
-                // ユーザーアバター
-                userAvatar
-                
-                // ユーザー名と日付/性別
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(viewModel.postUser?.displayName ?? "読み込み中...")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Color(hex: "2D2D2D"))
-                        .lineLimit(1)
+            // 左側: アバターとユーザー情報（タップでユーザープロフィールへ遷移）
+            NavigationLink(destination: UserProfileView(userId: viewModel.post.userId)) {
+                HStack(spacing: 8) {
+                    // ユーザーアバター
+                    userAvatar
                     
-                    Text(viewModel.dateAndGenderText)
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(hex: "AAAAAA"))
-                        .lineLimit(1)
+                    // ユーザー名と日付/性別
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(viewModel.postUser?.displayName ?? "読み込み中...")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(Color(hex: "2D2D2D"))
+                            .lineLimit(1)
+                        
+                        Text(viewModel.dateAndGenderText)
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "AAAAAA"))
+                            .lineLimit(1)
+                    }
                 }
             }
+            .buttonStyle(PlainButtonStyle())
             
             Spacer()
             
