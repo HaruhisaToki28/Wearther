@@ -253,7 +253,11 @@ private struct ProfilePostsGrid: View {
         } else {
             LazyVGrid(columns: columns, spacing: 5) {
                 ForEach(posts) { post in
-                    ProfileOutfitCard(post: post)
+                    // 投稿詳細画面への遷移
+                    NavigationLink(destination: PostDetailView(post: post)) {
+                        ProfileOutfitCard(post: post)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
             .padding(.horizontal, 15)
