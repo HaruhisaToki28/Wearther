@@ -293,4 +293,111 @@ class FashionService: ObservableObject {
             .collection("following").document(targetUserId).getDocument()
         return doc.exists
     }
+    
+    // MARK: - 検索機能
+    
+    /// 投稿を検索
+    /// タイトル、キャプション、場所名で部分一致検索
+    /// - Parameters:
+    ///   - query: 検索クエリ
+    ///   - limit: 取得する最大件数（デフォルト50件）
+    /// - Returns: 検索結果の投稿配列
+    /// - Note: Firestoreは部分一致検索をサポートしていないため、
+    ///         全件取得してクライアント側でフィルタリングします。
+    ///         大規模データの場合はAlgoliaなどの検索サービスの導入を推奨。
+    func searchPosts(query: String, limit: Int = 50) async throws -> [Post] {
+        let normalizedQuery = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedQuery.isEmpty else { return [] }
+        
+        // 全投稿を取得（最新順）
+        let snapshot = try await db.collection("posts")
+            .order(by: "createdAt", descending: true)
+            .limit(to: 200) // パフォーマンスのため上限を設定
+            .getDocuments()
+        
+        var posts = snapshot.documents.compactMap { doc in
+            try? doc.data(as: Post.self)
+        }
+        
+        // クライアント側でフィルタリング
+        posts = posts.filter { post in
+            post.title.lowercased().contains(normalizedQuery) ||
+            post.caption.lowercased().contains(normalizedQuery) ||
+            post.location.name.lowercased().contains(normalizedQuery)
+        }
+        
+        return Array(posts.prefix(limit))
+    }
+    
+    /// ユーザーを検索
+    /// ユーザー名（username）、表示名（displayName）で部分一致検索
+    /// - Parameters:
+    ///   - query: 検索クエリ
+    ///   - limit: 取得する最大件数（デフォルト30件）
+    /// - Returns: 検索結果のユーザー配列
+    func searchUsers(query: String, limit: Int = 30) async throws -> [AppUser] {
+        let normalizedQuery = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedQuery.isEmpty else { return [] }
+        
+        // 全ユーザーを取得
+        let snapshot = try await db.collection("users")
+            .limit(to: 200) // パフォーマンスのため上限を設定
+            .getDocuments()
+        
+        var users = snapshot.documents.compactMap { doc in
+            try? doc.data(as: AppUser.self)
+        }
+        
+        // クライアント側でフィルタリング
+        users = users.filter { user in
+            user.username.lowercased().contains(normalizedQuery) ||
+            user.displayName.lowercased().contains(normalizedQuery)
+        }
+        
+        // フォロワー数順でソート（人気順）
+        users.sort { $0.followersCount > $1.followersCount }
+        
+        return Array(users.prefix(limit))
+    }
+    
+    /// 検索結果の投稿に対応するユーザー情報を一括取得
+    /// - Parameter posts: 投稿の配列
+    /// - Returns: userIdをキーとするユーザー辞書
+    func fetchUsersForPosts(_ posts: [Post]) async throws -> [String: AppUser] {
+        // ユニークなuserIdを抽出
+        let userIds = Array(Set(posts.map { $0.userId }))
+        guard !userIds.isEmpty else { return [:] }
+        
+        var userDict: [String: AppUser] = [:]
+        
+        // Firestoreの「in」クエリは最大10件なので、分割して取得
+        let chunks = userIds.chunked(into: 10)
+        
+        for chunk in chunks {
+            let snapshot = try await db.collection("users")
+                .whereField(FieldPath.documentID(), in: chunk)
+                .getDocuments()
+            
+            for doc in snapshot.documents {
+                if let user = try? doc.data(as: AppUser.self) {
+                    userDict[doc.documentID] = user
+                }
+            }
+        }
+        
+        return userDict
+    }
+}
+
+// MARK: - Array Extension
+
+extension Array {
+    /// 配列を指定サイズのチャンクに分割
+    /// - Parameter size: チャンクサイズ
+    /// - Returns: 分割された配列の配列
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
+        }
+    }
 }

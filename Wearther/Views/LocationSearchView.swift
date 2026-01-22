@@ -10,6 +10,7 @@ import SwiftUI
 struct LocationSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = LocationSearchViewModel()
+    @FocusState private var isSearchFieldFocused: Bool
     
     let onLocationSelected: (LocationSearchResult) -> Void
     
@@ -35,6 +36,7 @@ struct LocationSearchView: View {
                             .font(.system(size: 15))
                             .foregroundColor(Color(hex: "2D2D2D"))
                             .autocorrectionDisabled()
+                            .focused($isSearchFieldFocused)
                             .onChange(of: viewModel.searchText) { _, _ in
                                 viewModel.search()
                             }
@@ -115,6 +117,11 @@ struct LocationSearchView: View {
                     }
                 }
                 .padding(.top, 16)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture {
+                // キーボードを閉じる
+                isSearchFieldFocused = false
             }
         }
         .background(Color(hex: "F8F8F8"))
