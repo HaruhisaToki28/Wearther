@@ -52,7 +52,7 @@ struct MainTabView: View {
                     // カメラタブは直接画面を表示せず、シートで表示
                     Color.clear
                 case .clothes:
-                    Text("Clothes View")
+                    FashionView()
                 case .profile:
                     ProfileView()
                 }
