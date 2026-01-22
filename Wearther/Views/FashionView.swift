@@ -61,27 +61,30 @@ struct FashionView: View {
     
     // MARK: - 検索バー
     
-    /// 検索バー（後で実装予定）
-    /// LocationSearchViewと同じデザインに統一
+    /// 検索バー
+    /// タップすると検索画面に遷移
     private var searchBar: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                // 検索入力欄（タップ可能なプレースホルダー）
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "68717B"))
-                    
-                    Text("ユーザーまたは投稿を検索")
-                        .font(.system(size: 15))
-                        .foregroundColor(Color(hex: "68717B"))
-                    
-                    Spacer()
+                // 検索入力欄（タップで検索画面に遷移）
+                NavigationLink(destination: FashionSearchView()) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "68717B"))
+                        
+                        Text("ユーザーまたは投稿を検索")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "68717B"))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(hex: "F5F5F5"))
+                    .cornerRadius(12)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color(hex: "F5F5F5"))
-                .cornerRadius(12)
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
