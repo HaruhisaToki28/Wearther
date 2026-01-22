@@ -19,33 +19,36 @@ struct FashionView: View {
     // MARK: - Body
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // 検索バー（後で実装予定のためプレースホルダー）
-                searchBar
-                
-                // 今日のトレンド
-                trendSection
-                
-                // おすすめユーザー
-                recommendedUsersSection
-                
-                // ランキング
-                rankingSection
-                
-                // 人気の検索
-                popularSearchesSection
-                
-                // 下部余白（タブバー分）
-                Spacer()
-                    .frame(height: 20)
+        VStack(spacing: 0) {
+            // MARK: - 固定ヘッダー（検索バー）
+            searchBar
+            
+            // MARK: - スクロールコンテンツ
+            ScrollView {
+                VStack(spacing: 0) {
+                    // 今日のトレンド
+                    trendSection
+                    
+                    // おすすめユーザー
+                    recommendedUsersSection
+                    
+                    // ランキング
+                    rankingSection
+                    
+                    // 人気の検索
+                    popularSearchesSection
+                    
+                    // 下部余白（タブバー分）
+                    Spacer()
+                        .frame(height: 20)
+                }
+            }
+            .refreshable {
+                await viewModel.loadAllData(userId: authService.currentUser?.id)
             }
         }
         .background(Color(hex: "F8F8F8"))
         .task {
-            await viewModel.loadAllData(userId: authService.currentUser?.id)
-        }
-        .refreshable {
             await viewModel.loadAllData(userId: authService.currentUser?.id)
         }
     }

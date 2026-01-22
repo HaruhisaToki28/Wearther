@@ -31,9 +31,13 @@ struct RecommendedUserCard: View {
     // MARK: - Body
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 上半分: 投稿画像2枚
-            ZStack {
+        ZStack(alignment: .top) {
+            // 背景（白）
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color.white)
+            
+            VStack(spacing: 0) {
+                // 上半分: 投稿画像2枚
                 HStack(spacing: 0) {
                     // 左の投稿画像
                     if userData.topPosts.count > 0 {
@@ -51,18 +55,23 @@ struct RecommendedUserCard: View {
                         placeholderImage()
                     }
                 }
+                .frame(width: cardWidth, height: imageHeight)
+                .clipped()
+                .clipShape(
+                    RoundedCorner(radius: 15, corners: [.topLeft, .topRight])
+                )
                 
-                // 中央のユーザーアイコン
-                userAvatar
-                    .offset(y: 35) // 画像の下部に配置
+                Spacer()
             }
-            .frame(height: imageHeight)
             
-            Spacer()
-                .frame(height: 46) // アバター分のスペース
-            
-            // 下部: ユーザー情報とフォローボタン
-            VStack(spacing: 7) {
+            // 中央に配置するコンテンツ（アバター + ユーザー情報）
+            VStack(spacing: 8) {
+                Spacer()
+                    .frame(height: imageHeight - avatarSize / 2) // 画像の下端にアバターの中心が来るように
+                
+                // ユーザーアバター
+                userAvatar
+                
                 // ユーザー名とID
                 VStack(spacing: 2) {
                     Text(userData.user.displayName)
@@ -78,13 +87,14 @@ struct RecommendedUserCard: View {
                 
                 // フォローボタン
                 followButton
+                    .padding(.horizontal, 24)
+                
+                Spacer()
+                    .frame(height: 12)
             }
-            .padding(.horizontal, 44)
-            .padding(.bottom, 10)
+            .frame(width: cardWidth)
         }
         .frame(width: cardWidth, height: cardHeight)
-        .background(Color.white)
-        .cornerRadius(15)
     }
     
     // MARK: - Subviews
