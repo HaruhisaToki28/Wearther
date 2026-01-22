@@ -132,15 +132,20 @@ class PostService: ObservableObject {
     
     // MARK: - Fetch User's Posts
     func fetchUserPosts(userId: String, limit: Int = 20) async throws -> [Post] {
+        // 複合インデックスを避けるため、フィルタのみでクエリしてメモリでソート
         let snapshot = try await db.collection("posts")
             .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
-            .limit(to: limit)
+            .limit(to: 100) // 十分な件数を取得
             .getDocuments()
         
-        return snapshot.documents.compactMap { doc in
+        var posts = snapshot.documents.compactMap { doc in
             try? doc.data(as: Post.self)
         }
+        
+        // 作成日時でソート（新しい順）
+        posts.sort { $0.createdAt > $1.createdAt }
+        
+        return Array(posts.prefix(limit))
     }
     
     // MARK: - Delete Post

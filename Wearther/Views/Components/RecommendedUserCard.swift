@@ -69,20 +69,44 @@ struct RecommendedUserCard: View {
                 Spacer()
                     .frame(height: imageHeight - avatarSize / 2) // 画像の下端にアバターの中心が来るように
                 
-                // ユーザーアバター
-                userAvatar
+                // ユーザーアバター（タップでプロフィールへ遷移）
+                if let userId = userData.user.id {
+                    NavigationLink(destination: UserProfileView(userId: userId)) {
+                        userAvatar
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else {
+                    userAvatar
+                }
                 
-                // ユーザー名とID
-                VStack(spacing: 2) {
-                    Text(userData.user.displayName)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color(hex: "2D2D2D"))
-                        .lineLimit(1)
-                    
-                    Text("@\(userData.user.username)")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(Color(hex: "AAAAAA"))
-                        .lineLimit(1)
+                // ユーザー名とID（タップでプロフィールへ遷移）
+                if let userId = userData.user.id {
+                    NavigationLink(destination: UserProfileView(userId: userId)) {
+                        VStack(spacing: 2) {
+                            Text(userData.user.displayName)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(Color(hex: "2D2D2D"))
+                                .lineLimit(1)
+                            
+                            Text("@\(userData.user.username)")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(Color(hex: "AAAAAA"))
+                                .lineLimit(1)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                } else {
+                    VStack(spacing: 2) {
+                        Text(userData.user.displayName)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color(hex: "2D2D2D"))
+                            .lineLimit(1)
+                        
+                        Text("@\(userData.user.username)")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(Color(hex: "AAAAAA"))
+                            .lineLimit(1)
+                    }
                 }
                 
                 // フォローボタン
