@@ -13,7 +13,6 @@ import Combine
 class HomeViewModel: ObservableObject {
     @Published var weather: Weather?
     @Published var fashionAdvice: FashionAdvice?
-    @Published var outfitRecommendations: [OutfitRecommendation] = []
     @Published var stories: [StoryProfile] = []
     @Published var isLoading = false
     @Published var isWeatherLoading = false
@@ -24,12 +23,34 @@ class HomeViewModel: ObservableObject {
     /// ユーザーの居住地域が設定されているかどうか
     @Published var isLocationSet: Bool = false
     
+    // MARK: - Feed Posts
+    
+    /// おすすめ投稿
+    @Published var recommendedPosts: [Post] = []
+    /// フォロー中の投稿
+    @Published var followingPosts: [Post] = []
+    /// おすすめ投稿のユーザー情報
+    @Published var recommendedPostUsers: [String: AppUser] = [:]
+    /// フォロー中投稿のユーザー情報
+    @Published var followingPostUsers: [String: AppUser] = [:]
+    /// いいね済み投稿のIDセット
+    @Published var likedPostIds: Set<String> = []
+    
+    /// おすすめ投稿をロード中
+    @Published var isRecommendedLoading = false
+    /// フォロー中投稿をロード中
+    @Published var isFollowingLoading = false
+    /// フォロー中のユーザーがいるかどうか
+    @Published var hasFollowingUsers = false
+    
     private let weatherService = WeatherService.shared
     private let aiAdviceService = AIAdviceService.shared
+    private let postService = PostService.shared
+    private let fashionService = FashionService.shared
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        loadMockOutfitData()
+        // 初期化時には何もロードしない
     }
     
     // MARK: - Weather Data Loading
@@ -141,126 +162,149 @@ class HomeViewModel: ObservableObject {
     
     func refresh(user: AppUser?) async {
         isLoading = true
+        lastLoadedLocation = nil // 強制リロード
         await loadWeather(for: user)
-        loadMockOutfitData()
+        await loadRecommendedPosts(user: user)
+        await loadFollowingPosts(user: user)
         isLoading = false
     }
     
-    // MARK: - Mock Data (後でFirebaseから取得に変更)
+    // MARK: - Load Recommended Posts (おすすめ投稿)
     
-    func loadMockOutfitData() {
-        // fashionAdviceはAIから取得するので、ここでは設定しない
+    /// 天気に基づいたおすすめ投稿を取得
+    func loadRecommendedPosts(user: AppUser?) async {
+        guard let weather = weather, let userId = user?.id else { return }
         
-        stories = [
-            StoryProfile(
-                username: "tarou_01",
-                imageURL: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
-            ),
-            StoryProfile(
-                username: "ranmaru",
-                imageURL: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39"
-            ),
-            StoryProfile(
-                username: "aki_style",
-                imageURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1"
-            ),
-            StoryProfile(
-                username: "sora",
-                imageURL: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91"
-            ),
-            StoryProfile(
-                username: "mei",
-                imageURL: "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-            )
-        ]
+        isRecommendedLoading = true
         
-        outfitRecommendations = [
-            OutfitRecommendation(
-                userId: "1",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle",
-                userAvatarURL: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-                weatherSnapshot: WeatherSnapshot(temperature: 19.0, condition: .partlyCloudy),
-                likes: 120,
-                isLiked: false
-            ),
-            OutfitRecommendation(
-                userId: "2",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle.fill",
-                userAvatarURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1492447166138-50c3889fccb1",
-                weatherSnapshot: WeatherSnapshot(temperature: 18.0, condition: .cloudy),
-                likes: 98,
-                isLiked: false
-            ),
-            OutfitRecommendation(
-                userId: "3",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle.badge.checkmark",
-                userAvatarURL: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f",
-                weatherSnapshot: WeatherSnapshot(temperature: 16.0, condition: .rainy),
-                likes: 155,
-                isLiked: true
-            ),
-            OutfitRecommendation(
-                userId: "4",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle.badge.questionmark",
-                userAvatarURL: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1503341504253-dff4815485f1",
-                weatherSnapshot: WeatherSnapshot(temperature: 14.0, condition: .cloudy),
-                likes: 64,
-                isLiked: false
-            ),
-            OutfitRecommendation(
-                userId: "5",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle.badge.plus",
-                userAvatarURL: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb",
-                weatherSnapshot: WeatherSnapshot(temperature: 20.0, condition: .sunny),
-                likes: 87,
-                isLiked: false
-            ),
-            OutfitRecommendation(
-                userId: "6",
-                userName: "蘭丸",
-                userAvatarSymbol: "person.crop.circle.badge.minus",
-                userAvatarURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-                userHeight: 175,
-                imageURL: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
-                weatherSnapshot: WeatherSnapshot(temperature: 22.0, condition: .sunny),
-                likes: 111,
-                isLiked: false
+        do {
+            // 天気条件からPostWeatherに変換
+            let postWeather = PostWeather.from(weather.condition)
+            let currentTemp = Int(weather.temperature)
+            let location = user?.location ?? ""
+            
+            // おすすめ投稿を取得
+            let posts = try await postService.fetchRecommendedPosts(
+                currentTemperature: currentTemp,
+                currentWeather: postWeather,
+                currentLocation: location,
+                limit: 30
             )
-        ]
+            
+            recommendedPosts = posts
+            
+            // ユーザー情報を取得
+            let users = try await fashionService.fetchUsersForPosts(posts)
+            recommendedPostUsers = users
+            
+            // いいね状態を取得
+            await loadLikedStatus(for: posts, userId: userId)
+            
+        } catch {
+            print("Failed to load recommended posts: \(error)")
+        }
+        
+        isRecommendedLoading = false
     }
     
-    func toggleLike(for recommendation: OutfitRecommendation) {
-        if let index = outfitRecommendations.firstIndex(where: { $0.id == recommendation.id }) {
-            let current = outfitRecommendations[index]
-            let updated = OutfitRecommendation(
-                id: current.id,
-                userId: current.userId,
-                userName: current.userName,
-                userAvatarSymbol: current.userAvatarSymbol,
-                userAvatarURL: current.userAvatarURL,
-                userHeight: current.userHeight,
-                imageURL: current.imageURL,
-                weatherSnapshot: current.weatherSnapshot,
-                likes: current.isLiked ? current.likes - 1 : current.likes + 1,
-                isLiked: !current.isLiked
-            )
-            outfitRecommendations[index] = updated
+    // MARK: - Load Following Posts (フォロー中投稿)
+    
+    /// フォロー中ユーザーの過去7日間の投稿を取得
+    func loadFollowingPosts(user: AppUser?) async {
+        guard let userId = user?.id else {
+            hasFollowingUsers = false
+            return
         }
+        
+        isFollowingLoading = true
+        
+        // まずフォロー中のユーザーがいるかチェック（別のtryブロック）
+        do {
+            hasFollowingUsers = try await postService.hasFollowing(userId: userId)
+        } catch {
+            print("Failed to check following users: \(error)")
+            hasFollowingUsers = false
+            isFollowingLoading = false
+            return
+        }
+        
+        // フォロー中のユーザーがいない場合は終了
+        if !hasFollowingUsers {
+            followingPosts = []
+            followingPostUsers = [:]
+            isFollowingLoading = false
+            return
+        }
+        
+        // フォロー中の投稿を取得
+        do {
+            let posts = try await postService.fetchFollowingPosts(userId: userId, limit: 30)
+            followingPosts = posts
+            
+            // ユーザー情報を取得
+            let users = try await fashionService.fetchUsersForPosts(posts)
+            followingPostUsers = users
+            
+            // いいね状態を取得
+            await loadLikedStatus(for: posts, userId: userId)
+        } catch {
+            print("Failed to load following posts: \(error)")
+            // エラー時は空の配列を設定（hasFollowingUsersはtrueのまま）
+            followingPosts = []
+            followingPostUsers = [:]
+        }
+        
+        isFollowingLoading = false
+    }
+    
+    // MARK: - Toggle Like
+    
+    func toggleLike(for post: Post, userId: String) async {
+        guard let postId = post.id else { return }
+        
+        // 現在のいいね状態
+        let isCurrentlyLiked = likedPostIds.contains(postId)
+        
+        // UIを即座に更新（楽観的更新）
+        if isCurrentlyLiked {
+            likedPostIds.remove(postId)
+        } else {
+            likedPostIds.insert(postId)
+        }
+        
+        do {
+            // サーバー側のいいねをトグル
+            try await postService.toggleLike(postId: postId, userId: userId, isLiked: isCurrentlyLiked)
+        } catch {
+            // エラー時は元に戻す
+            if isCurrentlyLiked {
+                likedPostIds.insert(postId)
+            } else {
+                likedPostIds.remove(postId)
+            }
+            print("Failed to toggle like: \(error)")
+        }
+    }
+    
+    /// 投稿のいいね状態を取得
+    func loadLikedStatus(for posts: [Post], userId: String) async {
+        for post in posts {
+            guard let postId = post.id else { continue }
+            do {
+                let isLiked = try await postService.isPostLiked(postId: postId, userId: userId)
+                if isLiked {
+                    likedPostIds.insert(postId)
+                }
+            } catch {
+                print("Failed to check like status: \(error)")
+            }
+        }
+    }
+    
+    /// 投稿がいいね済みかどうか
+    func isLiked(_ post: Post) -> Bool {
+        guard let postId = post.id else { return false }
+        return likedPostIds.contains(postId)
     }
 }
 
