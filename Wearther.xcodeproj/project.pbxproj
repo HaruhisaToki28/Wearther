@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4C3078582EF3E1A70080294D /* Untitled-iOS-Default-1024x1024@1x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C3078572EF3E1A60080294D /* Untitled-iOS-Default-1024x1024@1x.png */; };
+		4CD6781A2F234FC700550F1E /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 4CD678192F234FC700550F1E /* FirebaseFunctions */; };
 		D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */; };
 		D71E27A32EF2E289005BE351 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D71E27A22EF2E289005BE351 /* FirebaseAuth */; };
 		D74D49942EE3F10600657E67 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D74D49932EE3F10200657E67 /* .gitignore */; };
@@ -84,6 +85,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D71DF7EA2EE1348400CCC8C9 /* FirebaseAnalytics in Frameworks */,
+				4CD6781A2F234FC700550F1E /* FirebaseFunctions in Frameworks */,
 				D71E27A32EF2E289005BE351 /* FirebaseAuth in Frameworks */,
 				D79BFEF02EF2EE670030FA50 /* GoogleSignIn in Frameworks */,
 				D75583D12EF39E1E00307D6B /* FirebaseFirestore in Frameworks */,
@@ -175,6 +177,7 @@
 				D7F24C9E2EF3056100C982E5 /* GoogleSignInSwift */,
 				D75583D02EF39E1E00307D6B /* FirebaseFirestore */,
 				D75583D42EF3A1C400307D6B /* FirebaseStorage */,
+				4CD678192F234FC700550F1E /* FirebaseFunctions */,
 			);
 			productName = Wearther;
 			productReference = 4CA01E0A2EBDD5A800310C6C /* Wearther.app */;
@@ -672,6 +675,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4CD678192F234FC700550F1E /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D71DF7E82EE1348400CCC8C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
 		D71DF7E92EE1348400CCC8C9 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D71DF7E82EE1348400CCC8C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
