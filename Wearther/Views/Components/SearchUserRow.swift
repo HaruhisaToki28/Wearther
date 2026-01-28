@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// 検索結果のユーザー行
 /// Figmaデザイン: アバター(35px)、ユーザー名、ID、フォローボタン
@@ -54,39 +55,11 @@ struct SearchUserRow: View {
     
     /// ユーザーアバター
     private var userAvatar: some View {
-        Group {
-            if let avatarURL = user.avatarURL, !avatarURL.isEmpty {
-                AsyncImage(url: URL(string: avatarURL)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    default:
-                        defaultAvatar
-                    }
-                }
-            } else {
-                defaultAvatar
-            }
-        }
-        .frame(width: avatarSize, height: avatarSize)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
-        )
-    }
-    
-    /// デフォルトアバター
-    private var defaultAvatar: some View {
-        Circle()
-            .fill(Color.gray.opacity(0.3))
-            .overlay {
-                Image(systemName: "person.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 14))
-            }
+        CachedAvatarImage(url: user.avatarURL, size: avatarSize)
+            .overlay(
+                Circle()
+                    .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
+            )
     }
     
     /// ユーザー情報（名前とID）

@@ -17,6 +17,11 @@ class AppLifecycleHandler: NSObject, UIApplicationDelegate {
     ) -> Bool {
         FirebaseApp.configure()
         print("Firebase has been configured!")
+        
+        // 画像キャッシュの設定を初期化
+        ImageCacheConfig.configure()
+        print("Image cache has been configured!")
+        
         return true
     }
 

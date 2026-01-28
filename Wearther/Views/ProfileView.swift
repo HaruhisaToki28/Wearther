@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
@@ -52,24 +53,11 @@ struct ProfileView: View {
                             VStack(spacing: 16) {
                                 HStack(alignment: .center, spacing: 16) { // アイコンと情報の間のスペースを16pxに
                                     // Avatar
-                                    AsyncImage(url: URL(string: viewModel.user?.avatarURL ?? "")) { phase in
-                                        switch phase {
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        case .failure, .empty:
-                                            Circle().fill(Color.gray.opacity(0.3))
-                                        @unknown default:
-                                            Circle().fill(Color.gray.opacity(0.3))
-                                        }
-                                    }
-                                    .frame(width: 86, height: 86)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color(red: 0.87, green: 0.89, blue: 0.89), lineWidth: 1) // #DDE2E2
-                                    )
+                                    CachedAvatarImage(url: viewModel.user?.avatarURL, size: 86)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color(red: 0.87, green: 0.89, blue: 0.89), lineWidth: 1) // #DDE2E2
+                                        )
                                     
                                     // Info Right
                                     VStack(alignment: .leading, spacing: 0) {

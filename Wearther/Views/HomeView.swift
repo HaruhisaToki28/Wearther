@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct HomeView: View {
     @EnvironmentObject var authService: AuthService
@@ -457,30 +458,12 @@ private struct HomePostCard: View {
             // Image - タップで投稿詳細へ
             NavigationLink(destination: PostDetailView(post: post)) {
                 GeometryReader { geometry in
-                    AsyncImage(url: URL(string: post.imageURL)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: geometry.size.width, height: 180)
-                                .clipped()
-                        case .failure:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(Color(hex: "68717B"))
-                                )
-                        case .empty:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                                .overlay(ProgressView())
-                        @unknown default:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                        }
-                    }
+                    CachedImage(
+                        url: post.imageURL,
+                        targetSize: CGSize(width: geometry.size.width * 2, height: 360)
+                    )
+                    .frame(width: geometry.size.width, height: 180)
+                    .clipped()
                 }
                 .frame(height: 180)
                 .clipped()
@@ -494,24 +477,7 @@ private struct HomePostCard: View {
                     NavigationLink(destination: UserProfileView(userId: userId)) {
                         HStack(spacing: 8) {
                             // Avatar
-                            if let avatarURL = user?.avatarURL, !avatarURL.isEmpty {
-                                AsyncImage(url: URL(string: avatarURL)) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    Circle().fill(Color(hex: "E8EDF5"))
-                                }
-                                .frame(width: 24, height: 24)
-                                .clipShape(Circle())
-                            } else {
-                                Circle()
-                                    .fill(Color(hex: "E8EDF5"))
-                                    .frame(width: 24, height: 24)
-                                    .overlay(
-                                        Image(systemName: "person.fill")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(Color(hex: "68717B"))
-                                    )
-                            }
+                            CachedAvatarImage(url: user?.avatarURL, size: 24)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(user?.displayName ?? "ユーザー")

@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import Combine
+import Kingfisher
 
 struct WeatherView: View {
     @StateObject private var weatherService = WeatherService.shared
@@ -465,16 +466,10 @@ private struct WeeklyOutfitCard: View {
         ZStack {
             gradientPlaceholder
             
-            AsyncImage(url: URL(string: post.imageURL)) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                default:
-                    EmptyView()
-                }
-            }
+            CachedImage(
+                url: post.imageURL,
+                targetSize: CGSize(width: 200, height: 240)
+            )
         }
         .frame(width: cardWidth, height: imageHeight)
         .clipped()
@@ -566,31 +561,10 @@ private struct CompactOutfitCard: View {
             VStack(spacing: 0) {
                 // Image セクション - 画像タップで投稿詳細へ
                 NavigationLink(destination: PostDetailView(post: outfit.post)) {
-                    ZStack {
-                        // プレースホルダー
-                        Rectangle()
-                            .fill(Color(hex: "E8EDF5"))
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color(hex: "68717B").opacity(0.5))
-                            )
-                        
-                        // 画像
-                        AsyncImage(url: URL(string: outfit.post.imageURL)) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            case .empty:
-                                ProgressView()
-                                    .tint(Color(hex: "68717B"))
-                            default:
-                                EmptyView()
-                            }
-                        }
-                    }
+                    CachedImage(
+                        url: outfit.post.imageURL,
+                        targetSize: CGSize(width: cardWidth * 2, height: imageHeight * 2)
+                    )
                     .frame(width: cardWidth, height: imageHeight)
                     .clipped()
                 }
@@ -618,24 +592,7 @@ private struct CompactOutfitCard: View {
                         NavigationLink(destination: UserProfileView(userId: userId)) {
                             HStack(spacing: 8) {
                                 // Avatar
-                                if let avatarURL = user.avatarURL, !avatarURL.isEmpty {
-                                    AsyncImage(url: URL(string: avatarURL)) { image in
-                                        image.resizable().scaledToFill()
-                                    } placeholder: {
-                                        Circle().fill(Color(hex: "E8EDF5"))
-                                    }
-                                    .frame(width: 22, height: 22)
-                                    .clipShape(Circle())
-                                } else {
-                                    Circle()
-                                        .fill(Color(hex: "E8EDF5"))
-                                        .frame(width: 22, height: 22)
-                                        .overlay(
-                                            Image(systemName: "person.fill")
-                                                .font(.system(size: 10))
-                                                .foregroundColor(Color(hex: "68717B"))
-                                        )
-                                }
+                                CachedAvatarImage(url: user.avatarURL, size: 22)
                                 
                                 // ユーザー情報
                                 VStack(alignment: .leading, spacing: 2) {
@@ -654,14 +611,7 @@ private struct CompactOutfitCard: View {
                     } else {
                         // ユーザー情報がない場合
                         HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color(hex: "E8EDF5"))
-                                .frame(width: 22, height: 22)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 10))
-                                        .foregroundColor(Color(hex: "68717B"))
-                                )
+                            CachedAvatarImage(url: nil, size: 22)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("ユーザー")

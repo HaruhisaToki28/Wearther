@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// おすすめユーザーカード
 /// Figmaデザイン: 179x251px
@@ -125,24 +126,10 @@ struct RecommendedUserCard: View {
     
     /// 投稿画像
     private func postImage(url: String) -> some View {
-        AsyncImage(url: URL(string: url)) { phase in
-            switch phase {
-            case .empty:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .overlay {
-                        ProgressView()
-                    }
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            case .failure:
-                placeholderImage()
-            @unknown default:
-                EmptyView()
-            }
-        }
+        CachedImage(
+            url: url,
+            targetSize: CGSize(width: imageWidth * 2, height: imageHeight * 2)
+        )
         .frame(width: imageWidth, height: imageHeight)
         .clipped()
     }
@@ -160,44 +147,16 @@ struct RecommendedUserCard: View {
     
     /// ユーザーアバター
     private var userAvatar: some View {
-        Group {
-            if let avatarURL = userData.user.avatarURL, !avatarURL.isEmpty {
-                AsyncImage(url: URL(string: avatarURL)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    default:
-                        defaultAvatar
-                    }
-                }
-            } else {
-                defaultAvatar
-            }
-        }
-        .frame(width: avatarSize, height: avatarSize)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color.white, lineWidth: avatarBorderWidth)
-        )
-        .background(
-            Circle()
-                .fill(Color.white)
-                .frame(width: avatarSize + 4, height: avatarSize + 4)
-        )
-    }
-    
-    /// デフォルトのアバター
-    private var defaultAvatar: some View {
-        Circle()
-            .fill(Color.gray.opacity(0.3))
-            .overlay {
-                Image(systemName: "person.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 24))
-            }
+        CachedAvatarImage(url: userData.user.avatarURL, size: avatarSize)
+            .overlay(
+                Circle()
+                    .stroke(Color.white, lineWidth: avatarBorderWidth)
+            )
+            .background(
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: avatarSize + 4, height: avatarSize + 4)
+            )
     }
     
     /// フォローボタン

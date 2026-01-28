@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// ランキング投稿カード
 /// Figmaデザイン: 124x166px
@@ -47,30 +48,10 @@ struct RankingPostCard: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             // 投稿画像
-            AsyncImage(url: URL(string: rankedPost.post.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .overlay {
-                            ProgressView()
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .overlay {
-                            Image(systemName: "photo")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 24))
-                        }
-                @unknown default:
-                    EmptyView()
-                }
-            }
+            CachedImage(
+                url: rankedPost.post.imageURL,
+                targetSize: CGSize(width: cardWidth * 2, height: cardHeight * 2)
+            )
             .frame(width: cardWidth, height: cardHeight)
             .clipped()
             .cornerRadius(10, corners: showRankTag ? [.topRight, .bottomLeft, .bottomRight] : .allCorners)

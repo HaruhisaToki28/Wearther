@@ -95,24 +95,11 @@ struct EditProfileView: View {
                                         )
                                 } else if let urlString = avatarURL, !urlString.isEmpty {
                                     // Existing avatar from URL
-                                    AsyncImage(url: URL(string: urlString)) { phase in
-                                        switch phase {
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        case .failure, .empty:
-                                            defaultAvatarView
-                                        @unknown default:
-                                            defaultAvatarView
-                                        }
-                                    }
-                                    .frame(width: 109, height: 109)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color(hex: "DDE2E2"), lineWidth: 1)
-                                    )
+                                    CachedAvatarImage(url: urlString, size: 109)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color(hex: "DDE2E2"), lineWidth: 1)
+                                        )
                                 } else {
                                     // Default avatar
                                     defaultAvatarView

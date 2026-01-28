@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// 検索結果の投稿カード
 /// Figmaデザイン: 115x193px（3列グリッド用）
@@ -47,30 +48,10 @@ struct SearchPostCard: View {
     
     /// 投稿画像
     private var postImage: some View {
-        AsyncImage(url: URL(string: post.imageURL)) { phase in
-            switch phase {
-            case .empty:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .overlay {
-                        ProgressView()
-                    }
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            case .failure:
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .overlay {
-                        Image(systemName: "photo")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 24))
-                    }
-            @unknown default:
-                EmptyView()
-            }
-        }
+        CachedImage(
+            url: post.imageURL,
+            targetSize: CGSize(width: cardWidth * 2, height: imageHeight * 2)
+        )
         .frame(width: cardWidth, height: imageHeight)
         .clipped()
         .clipShape(
@@ -112,39 +93,11 @@ struct SearchPostCard: View {
     
     /// ユーザーアバター
     private var userAvatar: some View {
-        Group {
-            if let avatarURL = user?.avatarURL, !avatarURL.isEmpty {
-                AsyncImage(url: URL(string: avatarURL)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    default:
-                        defaultAvatar
-                    }
-                }
-            } else {
-                defaultAvatar
-            }
-        }
-        .frame(width: avatarSize, height: avatarSize)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
-        )
-    }
-    
-    /// デフォルトアバター
-    private var defaultAvatar: some View {
-        Circle()
-            .fill(Color.gray.opacity(0.3))
-            .overlay {
-                Image(systemName: "person.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 8))
-            }
+        CachedAvatarImage(url: user?.avatarURL, size: avatarSize)
+            .overlay(
+                Circle()
+                    .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
+            )
     }
 }
 
