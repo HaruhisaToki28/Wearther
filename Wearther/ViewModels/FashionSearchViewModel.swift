@@ -202,23 +202,32 @@ class FashionSearchViewModel: ObservableObject {
         isSearching = false
     }
     
-    /// ユーザーのフォロー状態を確認
+    /// ユーザーのフォロー状態を並列で確認
     /// - Parameter users: ユーザー配列
     private func checkFollowingStatus(for users: [AppUser]) async {
         guard let currentId = currentUserId else { return }
         
-        for user in users {
-            guard let userId = user.id, userId != currentId else { continue }
+        let usersToCheck = users.filter { $0.id != nil && $0.id != currentId }
+        
+        await withTaskGroup(of: (String, Bool).self) { group in
+            for user in usersToCheck {
+                guard let userId = user.id else { continue }
+                
+                group.addTask {
+                    do {
+                        let isFollowing = try await self.fashionService.isFollowing(
+                            targetUserId: userId,
+                            currentUserId: currentId
+                        )
+                        return (userId, isFollowing)
+                    } catch {
+                        return (userId, false)
+                    }
+                }
+            }
             
-            do {
-                let isFollowing = try await fashionService.isFollowing(
-                    targetUserId: userId,
-                    currentUserId: currentId
-                )
+            for await (userId, isFollowing) in group {
                 followingStatus[userId] = isFollowing
-            } catch {
-                // エラー時はfalseとする
-                followingStatus[userId] = false
             }
         }
     }

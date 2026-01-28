@@ -87,43 +87,56 @@ class WeatherViewModel: ObservableObject {
     
     // MARK: - 週間予報&おすすめコーデ
     
-    /// 週間予報とおすすめコーデを取得
+    /// 週間予報とおすすめコーデを並列で取得
     private func loadWeeklyOutfits(forecasts: [MediumRangeForecast], location: String) async {
+        let forecastsToProcess = Array(forecasts.prefix(7))
+        
+        // 並列でおすすめ投稿を取得
+        let results = await withTaskGroup(of: (Int, Post?, AppUser?).self, returning: [(Int, Post?, AppUser?)].self) { group in
+            for (index, forecast) in forecastsToProcess.enumerated() {
+                group.addTask {
+                    let postWeather = forecast.weatherCondition.toPostWeather()
+                    let temperature = Int(forecast.maxtemp)
+                    
+                    do {
+                        let recommendedPosts = try await self.postService.fetchRecommendedPosts(
+                            currentTemperature: temperature,
+                            currentWeather: postWeather,
+                            currentLocation: location,
+                            limit: 1
+                        )
+                        
+                        let post = recommendedPosts.first
+                        var postUser: AppUser? = nil
+                        
+                        if let post = post {
+                            postUser = try? await self.fashionService.fetchUser(userId: post.userId)
+                        }
+                        
+                        return (index, post, postUser)
+                    } catch {
+                        return (index, nil, nil)
+                    }
+                }
+            }
+            
+            var results: [(Int, Post?, AppUser?)] = []
+            for await result in group {
+                results.append(result)
+            }
+            return results
+        }
+        
+        // インデックス順にソートして結果を構築
+        let sortedResults = results.sorted { $0.0 < $1.0 }
         var outfits: [WeatherWeeklyOutfit] = []
         
-        for forecast in forecasts.prefix(7) {
-            let postWeather = forecast.weatherCondition.toPostWeather()
-            let temperature = Int(forecast.maxtemp)
-            
-            // おすすめ投稿を1件取得
-            do {
-                let recommendedPosts = try await postService.fetchRecommendedPosts(
-                    currentTemperature: temperature,
-                    currentWeather: postWeather,
-                    currentLocation: location,
-                    limit: 1
-                )
-                
-                let post = recommendedPosts.first
-                var postUser: AppUser? = nil
-                
-                if let post = post {
-                    postUser = try? await fashionService.fetchUser(userId: post.userId)
-                }
-                
-                outfits.append(WeatherWeeklyOutfit(
-                    forecast: forecast,
-                    recommendedPost: post,
-                    postUser: postUser
-                ))
-            } catch {
-                // エラー時は投稿なしで追加
-                outfits.append(WeatherWeeklyOutfit(
-                    forecast: forecast,
-                    recommendedPost: nil,
-                    postUser: nil
-                ))
-            }
+        for (index, post, user) in sortedResults {
+            outfits.append(WeatherWeeklyOutfit(
+                forecast: forecastsToProcess[index],
+                recommendedPost: post,
+                postUser: user
+            ))
         }
         
         weeklyOutfits = outfits

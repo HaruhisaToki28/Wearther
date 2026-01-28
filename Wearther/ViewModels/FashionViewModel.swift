@@ -111,11 +111,21 @@ class FashionViewModel: ObservableObject {
             let posts = try await fashionService.fetchTodaysTrends(limit: 5)
             trendPosts = posts
             
-            // 各投稿のユーザー情報を取得
-            for post in posts {
-                if trendPostUsers[post.userId] == nil {
-                    if let user = try? await fashionService.fetchUser(userId: post.userId) {
-                        trendPostUsers[post.userId] = user
+            // 各投稿のユーザー情報を並列で取得
+            let userIds = posts.map { $0.userId }.filter { trendPostUsers[$0] == nil }
+            let uniqueUserIds = Array(Set(userIds))
+            
+            await withTaskGroup(of: (String, AppUser?).self) { group in
+                for userId in uniqueUserIds {
+                    group.addTask {
+                        let user = try? await self.fashionService.fetchUser(userId: userId)
+                        return (userId, user)
+                    }
+                }
+                
+                for await (userId, user) in group {
+                    if let user = user {
+                        trendPostUsers[userId] = user
                     }
                 }
             }

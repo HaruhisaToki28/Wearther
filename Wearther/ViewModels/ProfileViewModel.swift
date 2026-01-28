@@ -114,21 +114,38 @@ class ProfileViewModel: ObservableObject {
                 .getDocuments()
             
             let postIds = likedSnapshot.documents.map { $0.documentID }
-            
-            // Fetch each post
-            var posts: [Post] = []
-            for postId in postIds {
-                if let post = try? await db.collection("posts").document(postId).getDocument(as: Post.self) {
-                    posts.append(post)
-                }
+            guard !postIds.isEmpty else {
+                self.likedPosts = []
+                return
             }
             
-            self.likedPosts = posts
+            // バッチで投稿を取得（Firestoreのinクエリは最大10件なので分割）
+            var posts: [Post] = []
+            let chunks = postIds.chunked(into: 10)
+            
+            for chunk in chunks {
+                let snapshot = try await db.collection("posts")
+                    .whereField(FieldPath.documentID(), in: chunk)
+                    .getDocuments()
+                
+                let chunkPosts = snapshot.documents.compactMap { doc in
+                    try? doc.data(as: Post.self)
+                }
+                posts.append(contentsOf: chunkPosts)
+            }
+            
+            // 元の順序（likedAtの降順）を維持するためにソート
+            let orderedPosts = postIds.compactMap { id in
+                posts.first { $0.id == id }
+            }
+            
+            self.likedPosts = orderedPosts
         } catch {
             print("いいねした投稿の取得エラー: \(error)")
         }
     }
-        
+    
+    /// データを更新
     func refresh() async {
         isLoading = true
         // リスナーを再起動して最新データを取得
@@ -137,7 +154,7 @@ class ProfileViewModel: ObservableObject {
         await fetchLikedPosts()
         isLoading = false
     }
-
+    
     deinit {
         // メインスレッドでリスナーを解除
         userListener?.remove()

@@ -106,23 +106,28 @@ class UserProfileViewModel: ObservableObject {
             let likesSnapshot = try await db.collection("users")
                 .document(userId)
                 .collection("likedPosts")
-                .limit(to: 50) // order句を削除してインデックス不要に
+                .limit(to: 50)
                 .getDocuments()
             
             let postIds = likesSnapshot.documents.map { $0.documentID }
+            guard !postIds.isEmpty else {
+                likedPosts = []
+                return
+            }
             
-            // 各投稿を取得
+            // バッチで投稿を取得（Firestoreのinクエリは最大10件なので分割）
             var posts: [Post] = []
-            for postId in postIds {
-                do {
-                    let postDoc = try await db.collection("posts").document(postId).getDocument()
-                    if let post = try? postDoc.data(as: Post.self) {
-                        posts.append(post)
-                    }
-                } catch {
-                    // 個別の投稿取得エラーは無視して続行
-                    continue
+            let chunks = postIds.chunked(into: 10)
+            
+            for chunk in chunks {
+                let snapshot = try await db.collection("posts")
+                    .whereField(FieldPath.documentID(), in: chunk)
+                    .getDocuments()
+                
+                let chunkPosts = snapshot.documents.compactMap { doc in
+                    try? doc.data(as: Post.self)
                 }
+                posts.append(contentsOf: chunkPosts)
             }
             
             // 日時でソート（新しい順）
