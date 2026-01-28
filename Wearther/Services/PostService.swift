@@ -25,7 +25,8 @@ class PostService: ObservableObject {
     
     // MARK: - Upload Image to Firebase Storage
     func uploadImage(_ image: UIImage, userId: String) async throws -> String {
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+        // 画像をリサイズ（長辺1200px以下、JPEG品質80%）
+        guard let imageData = image.resizedForPost(maxDimension: 1200, compressionQuality: 0.8) else {
             throw PostServiceError.imageConversionFailed
         }
         

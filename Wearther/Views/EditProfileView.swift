@@ -295,7 +295,8 @@ struct EditProfileView: View {
     }
     
     func uploadAvatarImage(_ image: UIImage, userId: String) async throws -> String {
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+        // 画像をリサイズ（400x400正方形、JPEG品質80%）
+        guard let imageData = image.resizedForAvatar(size: 400, compressionQuality: 0.8) else {
             throw NSError(domain: "ImageError", code: 0, userInfo: [NSLocalizedDescriptionKey: "画像の変換に失敗しました"])
         }
         
