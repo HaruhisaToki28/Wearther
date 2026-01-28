@@ -162,10 +162,7 @@ class PostDetailViewModel: ObservableObject {
     
     /// 投稿日を「M月d日」形式で取得
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "M月d日"
-        return formatter.string(from: post.createdAt)
+        DateFormatterCache.monthDay.string(from: post.createdAt)
     }
     
     /// 性別表示用テキスト
