@@ -124,7 +124,8 @@ struct ForgotPasswordView: View {
             isError = false
             
             // 2秒後にサインイン画面に戻る
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 dismiss()
             }
         } catch {

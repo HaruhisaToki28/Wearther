@@ -499,7 +499,8 @@ private struct AvatarOptionsSheet: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             sheetOffset = 300
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
             isPresented = false
         }
     }
@@ -508,7 +509,8 @@ private struct AvatarOptionsSheet: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             sheetOffset = 300
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
             isPresented = false
             action()
         }
@@ -653,7 +655,7 @@ struct AvatarImagePickerView: View {
             photoArray.append(asset)
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.photos = photoArray
         }
     }
@@ -673,7 +675,7 @@ struct AvatarImagePickerView: View {
             options: options
         ) { image, _ in
             if let image = image {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.previewImage = image
                 }
             }
@@ -776,7 +778,7 @@ private struct PhotoGridItem: View {
             options: options
         ) { image, _ in
             if let image = image {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.thumbnail = image
                 }
             }

@@ -249,7 +249,7 @@ struct NewPostView: View {
             options: options
         ) { image, _ in
             if let image = image {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.selectedImage = image
                 }
             }
@@ -260,7 +260,7 @@ struct NewPostView: View {
     private func loadPhotoLibraryImages() {
         PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             guard status == .authorized || status == .limited else {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.isLoadingPhotos = false
                 }
                 return
@@ -286,7 +286,7 @@ struct NewPostView: View {
             var images: [UIImage] = []
             
             // バックグラウンドスレッドで処理
-            DispatchQueue.global(qos: .userInitiated).async {
+            Task.detached(priority: .userInitiated) {
                 assets.enumerateObjects { asset, index, _ in
                     imageManager.requestImage(
                         for: asset,
@@ -301,7 +301,7 @@ struct NewPostView: View {
                 }
                 
                 // メインスレッドでUI更新
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.photoLibraryImages = images
                     self.isLoadingPhotos = false
                 }
