@@ -513,16 +513,3 @@ enum FashionServiceError: LocalizedError {
         }
     }
 }
-
-// MARK: - Array Extension
-
-extension Array {
-    /// 配列を指定サイズのチャンクに分割
-    /// - Parameter size: チャンクサイズ
-    /// - Returns: 分割された配列の配列
-    func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            Array(self[$0..<Swift.min($0 + size, count)])
-        }
-    }
-}
