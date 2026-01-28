@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    APIKeys.plist Template
+    
+    Setup Instructions:
+    1. Copy this file and rename to "APIKeys.plist"
+    2. Replace "YOUR_API_KEY_HERE" with your actual API key
+    3. Add APIKeys.plist to your Xcode project (File > Add Files to "Wearther")
+    4. Make sure "Copy items if needed" is checked
+    
+    IMPORTANT: Never commit APIKeys.plist to version control!
+-->
+<plist version="1.0">
+<dict>
+	<key>WeatherNewsAPIKey</key>
+	<string>YOUR_API_KEY_HERE</string>
+</dict>
+</plist>

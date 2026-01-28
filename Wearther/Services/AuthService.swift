@@ -73,22 +73,44 @@ class AuthService: ObservableObject {
         do {
             _ = try await Auth.auth().signIn(withEmail: email, password: password)
         } catch let error as NSError {
-            if let errorCode = AuthErrorCode(rawValue: error.code) {
-                switch errorCode {
-                case .invalidEmail:
-                    throw AuthError.invalidEmailFormat
-                case .wrongPassword, .userNotFound:
-                    throw AuthError.invalidEmailOrPassword
-                case .networkError:
-                    throw AuthError.networkError
-                default:
-                    throw AuthError.unknown(error.localizedDescription)
-                }
-            }
-            throw AuthError.unknown(error.localizedDescription)
+            throw mapAuthError(error)
         }
     }
 
+    // MARK: - User Document Creation (共通メソッド)
+    
+    /// Firestoreにユーザードキュメントを作成する共通メソッド
+    private func createUserDocument(
+        uid: String,
+        email: String,
+        username: String,
+        displayName: String,
+        gender: String = "未設定",
+        age: Int = 0,
+        height: Int = 0
+    ) async throws {
+        try await Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .setData([
+                "uid": uid,
+                "email": email,
+                "username": username.lowercased(),
+                "displayName": displayName,
+                "createdAt": Timestamp(),
+                "avatarURL": "",
+                "bio": "",
+                "postsCount": 0,
+                "followersCount": 0,
+                "followingCount": 0,
+                "gender": gender,
+                "age": age,
+                "height": height,
+                "location": "未設定",
+                "temperatureTolerance": "未設定",
+            ])
+    }
+    
     // MARK: - Email SignUp (Multi-step flow)
     
     /// 新規登録（多段階フロー用）
@@ -105,99 +127,61 @@ class AuthService: ObservableObject {
             let result = try await Auth.auth()
                 .createUser(withEmail: email, password: password)
             
-            let uid = result.user.uid
-            
-            // Firestoreにユーザードキュメントを作成
-            try await Firestore.firestore()
-                .collection("users")
-                .document(uid)
-                .setData([
-                    "uid": uid,
-                    "email": email,
-                    "username": username.lowercased(),
-                    "displayName": displayName,
-                    "createdAt": Timestamp(),
-                    "avatarURL": "",
-                    "bio": "",
-                    "postsCount": 0,
-                    "followersCount": 0,
-                    "followingCount": 0,
-                    "gender": gender,
-                    "age": age,
-                    "height": height,
-                    "location": "未設定",
-                    "temperatureTolerance": "未設定",
-                ])
+            try await createUserDocument(
+                uid: result.user.uid,
+                email: email,
+                username: username,
+                displayName: displayName,
+                gender: gender,
+                age: age,
+                height: height
+            )
             
             // メール確認メールを送信
             try await result.user.sendEmailVerification()
             
         } catch let error as NSError {
-            if let errorCode = AuthErrorCode(rawValue: error.code) {
-                switch errorCode {
-                case .emailAlreadyInUse:
-                    throw AuthError.emailAlreadyInUse
-                case .invalidEmail:
-                    throw AuthError.invalidEmailFormat
-                case .weakPassword:
-                    throw AuthError.weakPassword
-                case .networkError:
-                    throw AuthError.networkError
-                default:
-                    throw AuthError.unknown(error.localizedDescription)
-                }
-            }
-            throw AuthError.unknown(error.localizedDescription)
+            throw mapAuthError(error)
         }
     }
     
     // MARK: - Legacy SignUp (keeping for compatibility)
     
-    func signUp(email: String, password: String, username: String, displayName: String) async throws
-    {
+    func signUp(email: String, password: String, username: String, displayName: String) async throws {
         do {
             let result = try await Auth.auth()
                 .createUser(withEmail: email, password: password)
 
-            let uid = result.user.uid
-
-            try await Firestore.firestore()
-                .collection("users")
-                .document(uid)
-                .setData([
-                    "uid": uid,
-                    "email": email,
-                    "username": username.lowercased(),
-                    "displayName": displayName,
-                    "createdAt": Timestamp(),
-                    "avatarURL": "",
-                    "bio": "",
-                    "postsCount": 0,
-                    "followersCount": 0,
-                    "followingCount": 0,
-                    "gender": "未設定",
-                    "age": 0,
-                    "height": 0,
-                    "location": "未設定",
-                    "temperatureTolerance": "未設定",
-                ])
+            try await createUserDocument(
+                uid: result.user.uid,
+                email: email,
+                username: username,
+                displayName: displayName
+            )
         } catch let error as NSError {
-            if let errorCode = AuthErrorCode(rawValue: error.code) {
-                switch errorCode {
-                case .emailAlreadyInUse:
-                    throw AuthError.emailAlreadyInUse
-                case .invalidEmail:
-                    throw AuthError.invalidEmailFormat
-                case .weakPassword:
-                    throw AuthError.weakPassword
-                case .networkError:
-                    throw AuthError.networkError
-                default:
-                    throw AuthError.unknown(error.localizedDescription)
-                }
-            }
-            throw AuthError.unknown(error.localizedDescription)
+            throw mapAuthError(error)
         }
+    }
+    
+    /// Firebase Authエラーをアプリのエラーに変換
+    private func mapAuthError(_ error: NSError) -> AuthError {
+        if let errorCode = AuthErrorCode(rawValue: error.code) {
+            switch errorCode {
+            case .emailAlreadyInUse:
+                return .emailAlreadyInUse
+            case .invalidEmail:
+                return .invalidEmailFormat
+            case .weakPassword:
+                return .weakPassword
+            case .networkError:
+                return .networkError
+            case .wrongPassword, .userNotFound:
+                return .invalidEmailOrPassword
+            default:
+                return .unknown(error.localizedDescription)
+            }
+        }
+        return .unknown(error.localizedDescription)
     }
 
     // MARK: - Google LogIn
@@ -238,6 +222,7 @@ class AuthService: ObservableObject {
         let authResult = try await Auth.auth().signIn(with: credential)
         let user = authResult.user
 
+        // 既存ユーザーかチェックし、新規の場合はドキュメント作成
         let db = Firestore.firestore()
         let userRef = db.collection("users").document(user.uid)
 
@@ -248,23 +233,12 @@ class AuthService: ObservableObject {
                 let displayName = user.displayName ?? "No Name"
                 let username = email.components(separatedBy: "@").first ?? UUID().uuidString
 
-                try await userRef.setData([
-                    "uid": user.uid,
-                    "email": email,
-                    "username": username.lowercased(),
-                    "displayName": displayName,
-                    "createdAt": Timestamp(),
-                    "avatarURL": "",
-                    "bio": "",
-                    "postsCount": 0,
-                    "followersCount": 0,
-                    "followingCount": 0,
-                    "gender": "未設定",
-                    "age": 0,
-                    "height": 0,
-                    "location": "未設定",
-                    "temperatureTolerance": "未設定",
-                ])
+                try await createUserDocument(
+                    uid: user.uid,
+                    email: email,
+                    username: username,
+                    displayName: displayName
+                )
             }
         } catch {
             print("Failed to create user document: \(error)")

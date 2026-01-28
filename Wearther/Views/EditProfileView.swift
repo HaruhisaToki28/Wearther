@@ -95,24 +95,11 @@ struct EditProfileView: View {
                                         )
                                 } else if let urlString = avatarURL, !urlString.isEmpty {
                                     // Existing avatar from URL
-                                    AsyncImage(url: URL(string: urlString)) { phase in
-                                        switch phase {
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        case .failure, .empty:
-                                            defaultAvatarView
-                                        @unknown default:
-                                            defaultAvatarView
-                                        }
-                                    }
-                                    .frame(width: 109, height: 109)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color(hex: "DDE2E2"), lineWidth: 1)
-                                    )
+                                    CachedAvatarImage(url: urlString, size: 109)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color(hex: "DDE2E2"), lineWidth: 1)
+                                        )
                                 } else {
                                     // Default avatar
                                     defaultAvatarView
@@ -308,7 +295,8 @@ struct EditProfileView: View {
     }
     
     func uploadAvatarImage(_ image: UIImage, userId: String) async throws -> String {
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+        // 画像をリサイズ（400x400正方形、JPEG品質80%）
+        guard let imageData = image.resizedForAvatar(size: 400, compressionQuality: 0.8) else {
             throw NSError(domain: "ImageError", code: 0, userInfo: [NSLocalizedDescriptionKey: "画像の変換に失敗しました"])
         }
         
@@ -511,7 +499,8 @@ private struct AvatarOptionsSheet: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             sheetOffset = 300
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
             isPresented = false
         }
     }
@@ -520,7 +509,8 @@ private struct AvatarOptionsSheet: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
             sheetOffset = 300
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
             isPresented = false
             action()
         }
@@ -665,7 +655,7 @@ struct AvatarImagePickerView: View {
             photoArray.append(asset)
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.photos = photoArray
         }
     }
@@ -685,7 +675,7 @@ struct AvatarImagePickerView: View {
             options: options
         ) { image, _ in
             if let image = image {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.previewImage = image
                 }
             }
@@ -788,7 +778,7 @@ private struct PhotoGridItem: View {
             options: options
         ) { image, _ in
             if let image = image {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.thumbnail = image
                 }
             }

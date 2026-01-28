@@ -98,34 +98,20 @@ class PostDetailViewModel: ObservableObject {
     func toggleFollow() async {
         guard let targetUserId = postUser?.id,
               let currentId = currentUserId,
-              targetUserId != currentId else {
-            print("フォロー操作をスキップ: 自分自身またはログインしていない")
-            return
-        }
+              targetUserId != currentId else { return }
         
-        // 楽観的UI更新（先にUIを更新）
+        // 楽観的UI更新
         let previousFollowState = isFollowing
         isFollowing.toggle()
         
         do {
-            if previousFollowState {
-                // フォロー解除
-                try await fashionService.unfollowUser(
-                    targetUserId: targetUserId,
-                    currentUserId: currentId
-                )
-                print("フォロー解除成功: \(targetUserId)")
-            } else {
-                // フォロー
-                try await fashionService.followUser(
-                    targetUserId: targetUserId,
-                    currentUserId: currentId
-                )
-                print("フォロー成功: \(targetUserId)")
-            }
+            try await fashionService.toggleFollow(
+                targetUserId: targetUserId,
+                currentUserId: currentId,
+                isCurrentlyFollowing: previousFollowState
+            )
         } catch {
             // エラー時はUIを元に戻す
-            print("フォロー操作に失敗: \(error.localizedDescription)")
             isFollowing = previousFollowState
             errorMessage = "フォローの更新に失敗しました"
         }
@@ -176,10 +162,7 @@ class PostDetailViewModel: ObservableObject {
     
     /// 投稿日を「M月d日」形式で取得
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "M月d日"
-        return formatter.string(from: post.createdAt)
+        DateFormatterCache.monthDay.string(from: post.createdAt)
     }
     
     /// 性別表示用テキスト

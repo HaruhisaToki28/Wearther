@@ -35,7 +35,8 @@ struct FashionSearchView: View {
         .onAppear {
             viewModel.setCurrentUserId(authService.currentUser?.id)
             // 検索フィールドにフォーカス
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task {
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 isSearchFieldFocused = true
             }
         }

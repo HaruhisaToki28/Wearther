@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// 投稿詳細画面
 /// フルスクリーンで投稿の詳細情報を表示
@@ -68,32 +69,10 @@ struct PostDetailView: View {
         GeometryReader { geometry in
             ZStack(alignment: .bottomLeading) {
                 // 投稿画像（画面幅に固定してレイアウト崩れを防止）
-                AsyncImage(url: URL(string: viewModel.post.imageURL)) { phase in
-                    switch phase {
-                    case .empty:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                            .overlay {
-                                ProgressView()
-                            }
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: imageHeight)
-                            .clipped()
-                    case .failure:
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .overlay {
-                                Image(systemName: "photo")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 40))
-                            }
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
+                CachedImage(
+                    url: viewModel.post.imageURL,
+                    targetSize: CGSize(width: geometry.size.width * 2, height: imageHeight * 2)
+                )
                 .frame(width: geometry.size.width, height: imageHeight)
                 .clipped()
                 
@@ -208,39 +187,11 @@ struct PostDetailView: View {
     
     /// ユーザーアバター
     private var userAvatar: some View {
-        Group {
-            if let avatarURL = viewModel.postUser?.avatarURL, !avatarURL.isEmpty {
-                AsyncImage(url: URL(string: avatarURL)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    default:
-                        defaultAvatar
-                    }
-                }
-            } else {
-                defaultAvatar
-            }
-        }
-        .frame(width: 36, height: 36)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
-        )
-    }
-    
-    /// デフォルトのアバター
-    private var defaultAvatar: some View {
-        Circle()
-            .fill(Color.gray.opacity(0.3))
-            .overlay {
-                Image(systemName: "person.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 16))
-            }
+        CachedAvatarImage(url: viewModel.postUser?.avatarURL, size: 36)
+            .overlay(
+                Circle()
+                    .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
+            )
     }
     
     /// いいねボタン

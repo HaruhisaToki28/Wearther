@@ -175,30 +175,11 @@ struct UserProfileView: View {
     
     /// ユーザーアバター
     private var userAvatar: some View {
-        AsyncImage(url: URL(string: viewModel.user?.avatarURL ?? "")) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            case .failure, .empty:
+        CachedAvatarImage(url: viewModel.user?.avatarURL, size: 86)
+            .overlay(
                 Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .overlay {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 30))
-                    }
-            @unknown default:
-                Circle().fill(Color.gray.opacity(0.3))
-            }
-        }
-        .frame(width: 86, height: 86)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
-        )
+                    .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
+            )
     }
     
     /// フォローボタン

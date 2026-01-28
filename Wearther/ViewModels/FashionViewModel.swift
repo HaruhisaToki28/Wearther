@@ -111,11 +111,25 @@ class FashionViewModel: ObservableObject {
             let posts = try await fashionService.fetchTodaysTrends(limit: 5)
             trendPosts = posts
             
-            // 各投稿のユーザー情報を取得
-            for post in posts {
-                if trendPostUsers[post.userId] == nil {
-                    if let user = try? await fashionService.fetchUser(userId: post.userId) {
-                        trendPostUsers[post.userId] = user
+            // 各投稿のユーザー情報を並列で取得
+            let userIds = posts.map { $0.userId }.filter { trendPostUsers[$0] == nil }
+            let uniqueUserIds = Array(Set(userIds))
+            
+            await withTaskGroup(of: (String, AppUser?).self) { group in
+                for userId in uniqueUserIds {
+                    group.addTask {
+                        do {
+                            return (userId, try await self.fashionService.fetchUser(userId: userId))
+                        } catch {
+                            print("⚠️ ユーザー取得失敗 (userId: \(userId)): \(error.localizedDescription)")
+                            return (userId, nil)
+                        }
+                    }
+                }
+                
+                for await (userId, user) in group {
+                    if let user = user {
+                        trendPostUsers[userId] = user
                     }
                 }
             }
@@ -193,36 +207,22 @@ class FashionViewModel: ObservableObject {
     /// - Parameter userData: 対象のおすすめユーザーデータ
     func toggleFollow(for userData: RecommendedUserData) async {
         guard let currentId = currentUserId,
-              let targetId = userData.user.id else {
-            print("フォロー操作をスキップ: ユーザーIDが取得できない")
-            return
-        }
+              let targetId = userData.user.id else { return }
         
-        // 楽観的UI更新（先にUIを更新）
+        // 楽観的UI更新
         let previousFollowState = userData.isFollowing
         if let index = recommendedUsers.firstIndex(where: { $0.id == userData.id }) {
             recommendedUsers[index].isFollowing.toggle()
         }
         
         do {
-            if previousFollowState {
-                // フォロー解除
-                try await fashionService.unfollowUser(
-                    targetUserId: targetId,
-                    currentUserId: currentId
-                )
-                print("フォロー解除成功: \(targetId)")
-            } else {
-                // フォロー
-                try await fashionService.followUser(
-                    targetUserId: targetId,
-                    currentUserId: currentId
-                )
-                print("フォロー成功: \(targetId)")
-            }
+            try await fashionService.toggleFollow(
+                targetUserId: targetId,
+                currentUserId: currentId,
+                isCurrentlyFollowing: previousFollowState
+            )
         } catch {
             // エラー時はUIを元に戻す
-            print("フォロー操作に失敗: \(error.localizedDescription)")
             if let index = recommendedUsers.firstIndex(where: { $0.id == userData.id }) {
                 recommendedUsers[index].isFollowing = previousFollowState
             }
@@ -240,13 +240,22 @@ class FashionViewModel: ObservableObject {
             
             for (index, post) in posts.enumerated() {
                 // ユーザー情報を取得
-                let user = try? await fashionService.fetchUser(userId: post.userId)
+                var user: AppUser? = nil
+                do {
+                    user = try await fashionService.fetchUser(userId: post.userId)
+                } catch {
+                    print("⚠️ ランキングユーザー取得失敗 (userId: \(post.userId)): \(error.localizedDescription)")
+                }
                 
                 // いいね状態を確認
                 var isLiked = false
                 if let postId = post.id, let currentId = currentUserId {
-                    isLiked = try await postService.isPostLiked(postId: postId, userId: currentId)
-                    likedPosts[postId] = isLiked
+                    do {
+                        isLiked = try await postService.isPostLiked(postId: postId, userId: currentId)
+                        likedPosts[postId] = isLiked
+                    } catch {
+                        print("⚠️ いいね状態取得失敗 (postId: \(postId)): \(error.localizedDescription)")
+                    }
                 }
                 
                 rankedData.append(RankedPost(

@@ -25,7 +25,8 @@ class PostService: ObservableObject {
     
     // MARK: - Upload Image to Firebase Storage
     func uploadImage(_ image: UIImage, userId: String) async throws -> String {
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+        // 画像をリサイズ（長辺1200px以下、JPEG品質80%）
+        guard let imageData = image.resizedForPost(maxDimension: 1200, compressionQuality: 0.8) else {
             throw PostServiceError.imageConversionFailed
         }
         
@@ -131,6 +132,7 @@ class PostService: ObservableObject {
     }
     
     // MARK: - Fetch Recommended Posts (天気ベースのおすすめ)
+    
     /// 現在の天気に基づいておすすめの投稿を取得
     /// 条件: 気温差5度以内の投稿のみ
     /// 優先順位: 気温(高) > 天気(中) > 場所(低)
@@ -140,37 +142,13 @@ class PostService: ObservableObject {
         currentLocation: String,
         limit: Int = 50
     ) async throws -> [Post] {
-        // 全投稿を取得（パフォーマンスのため上限設定）
-        let snapshot = try await db.collection("posts")
-            .order(by: "createdAt", descending: true)
-            .limit(to: 200)
-            .getDocuments()
-        
-        let allPosts = snapshot.documents.compactMap { doc in
-            try? doc.data(as: Post.self)
-        }
-        
-        // 気温差が5度以内の投稿のみをフィルタリング
-        let filteredPosts = allPosts.filter { post in
-            let tempDiff = abs(post.temperature - currentTemperature)
-            return tempDiff <= 5
-        }
-        
-        // スコア計算してソート
-        let scoredPosts = filteredPosts.map { post -> (post: Post, score: Double) in
-            let score = calculateRecommendationScore(
-                post: post,
-                currentTemperature: currentTemperature,
-                currentWeather: currentWeather,
-                currentLocation: currentLocation
-            )
-            return (post, score)
-        }
-        
-        // スコアの高い順にソート
-        let sortedPosts = scoredPosts.sorted { $0.score > $1.score }
-        
-        return Array(sortedPosts.prefix(limit).map { $0.post })
+        let scoredPosts = try await fetchScoredRecommendedPosts(
+            currentTemperature: currentTemperature,
+            currentWeather: currentWeather,
+            currentLocation: currentLocation,
+            limit: limit
+        )
+        return scoredPosts.map { $0.post }
     }
     
     /// おすすめ投稿をスコア付きで取得
@@ -180,20 +158,39 @@ class PostService: ObservableObject {
         currentLocation: String,
         limit: Int = 50
     ) async throws -> [(post: Post, score: Double)] {
-        // 全投稿を取得
+        return try await fetchScoredRecommendedPosts(
+            currentTemperature: currentTemperature,
+            currentWeather: currentWeather,
+            currentLocation: currentLocation,
+            limit: limit
+        )
+    }
+    
+    /// 内部共通メソッド: スコア付きおすすめ投稿を取得
+    /// サーバーサイドで気温フィルタを適用してFirestore読み取りを削減
+    private func fetchScoredRecommendedPosts(
+        currentTemperature: Int,
+        currentWeather: PostWeather,
+        currentLocation: String,
+        limit: Int
+    ) async throws -> [(post: Post, score: Double)] {
+        // 気温範囲を計算（±5度）
+        let minTemp = currentTemperature - 5
+        let maxTemp = currentTemperature + 5
+        
+        // サーバーサイドで気温フィルタを適用
+        // 注意: このクエリには複合インデックスが必要
+        // Firestore Console: posts collection, temperature (ASC), createdAt (DESC)
         let snapshot = try await db.collection("posts")
+            .whereField("temperature", isGreaterThanOrEqualTo: minTemp)
+            .whereField("temperature", isLessThanOrEqualTo: maxTemp)
+            .order(by: "temperature")
             .order(by: "createdAt", descending: true)
             .limit(to: 200)
             .getDocuments()
         
-        let allPosts = snapshot.documents.compactMap { doc in
+        let filteredPosts = snapshot.documents.compactMap { doc in
             try? doc.data(as: Post.self)
-        }
-        
-        // 気温差が5度以内の投稿のみをフィルタリング
-        let filteredPosts = allPosts.filter { post in
-            let tempDiff = abs(post.temperature - currentTemperature)
-            return tempDiff <= 5
         }
         
         // スコア計算してソート

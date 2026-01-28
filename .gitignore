@@ -4,3 +4,7 @@
 xcuserdata/
 
 *.xcuserstate
+
+# API Keys (IMPORTANT: Do not commit API keys)
+APIKeys.plist
+**/APIKeys.plist

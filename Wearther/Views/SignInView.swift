@@ -17,7 +17,7 @@ struct SignInView: View {
     @State private var errorMessage: String? = nil
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 Spacer()
                     .frame(height: 60)

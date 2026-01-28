@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import Kingfisher
 
 struct SettingsView: View {
     @EnvironmentObject var authService: AuthService
@@ -63,26 +64,10 @@ struct SettingsView: View {
                     // MARK: - User Profile Card
                     HStack(spacing: 15) {
                     // Avatar
-                    AsyncImage(url: URL(string: authService.currentUser?.avatarURL ?? authService.user?.photoURL?.absoluteString ?? "")) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        case .failure, .empty:
-                            Circle()
-                                .fill(Color.white.opacity(0.73))
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 30))
-                                        .foregroundColor(.gray)
-                                )
-                        @unknown default:
-                            Circle().fill(Color.gray.opacity(0.3))
-                        }
-                    }
-                    .frame(width: 68, height: 68)
-                    .clipShape(Circle())
+                    CachedAvatarImage(
+                        url: authService.currentUser?.avatarURL ?? authService.user?.photoURL?.absoluteString,
+                        size: 68
+                    )
                     .overlay(
                         Circle()
                             .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)

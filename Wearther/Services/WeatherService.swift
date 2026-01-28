@@ -12,14 +12,25 @@ import CoreLocation
 class WeatherService: ObservableObject {
     static let shared = WeatherService()
     
-    private let apiKey = "kKmcTu2Rc6a16T4juPzMKa6wDx0tuJIC7RRfG8bZ"
+    private let apiKey: String
     private let baseURL = "https://wxtech.weathernews.com/api/v1/ss1wx"
     
     @Published var currentWeather: WeatherNewsData?
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private init() {}
+    private init() {
+        // APIKeys.plistからAPIキーを読み込み
+        if let path = Bundle.main.path(forResource: "APIKeys", ofType: "plist"),
+           let dict = NSDictionary(contentsOfFile: path),
+           let key = dict["WeatherNewsAPIKey"] as? String {
+            self.apiKey = key
+        } else {
+            // フォールバック（開発時のみ使用、本番では必ずplistを設定）
+            print("⚠️ APIKeys.plist not found or invalid. Please add APIKeys.plist with WeatherNewsAPIKey.")
+            self.apiKey = ""
+        }
+    }
     
     // MARK: - Fetch Weather
     func fetchWeather(latitude: Double, longitude: Double) async throws -> WeatherNewsResponse {

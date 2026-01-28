@@ -37,25 +37,15 @@ struct ShortRangeForecast: Codable, Identifiable {
     }
     
     var formattedTime: String {
-        // 複数の日付形式に対応
         if let parsedDate = DateParserHelper.parseDate(date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm"
-            formatter.locale = Locale(identifier: "ja_JP")
-            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
-            return formatter.string(from: parsedDate)
+            return DateFormatterCache.time.string(from: parsedDate)
         }
         return "--:--"
     }
     
     var formattedDate: String {
-        // 複数の日付形式に対応
         if let parsedDate = DateParserHelper.parseDate(date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "M/d"
-            formatter.locale = Locale(identifier: "ja_JP")
-            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
-            return formatter.string(from: parsedDate)
+            return DateFormatterCache.shortDate.string(from: parsedDate)
         }
         return "--/--"
     }
@@ -75,24 +65,15 @@ struct MediumRangeForecast: Codable, Identifiable {
     }
     
     var formattedDate: String {
-        // 複数の日付形式に対応
         if let parsedDate = DateParserHelper.parseDate(date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "M/d"
-            formatter.locale = Locale(identifier: "ja_JP")
-            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
-            return formatter.string(from: parsedDate)
+            return DateFormatterCache.shortDate.string(from: parsedDate)
         }
         return "--/--"
     }
     
     var dayOfWeek: String {
         if let parsedDate = DateParserHelper.parseDate(date) {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "ja_JP")
-            formatter.timeZone = TimeZone(identifier: "Asia/Tokyo")
-            formatter.dateFormat = "E"
-            return formatter.string(from: parsedDate)
+            return DateFormatterCache.dayOfWeek.string(from: parsedDate)
         }
         return ""
     }

@@ -14,18 +14,23 @@ extension View {
     /// - Returns: キーボード閉じ機能が追加されたView
     func dismissKeyboardOnTap() -> some View {
         self.onTapGesture {
-            dismissKeyboard()
+            hideKeyboard()
         }
     }
     
     /// キーボードを閉じる
     func dismissKeyboard() {
-        UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder),
-            to: nil,
-            from: nil,
-            for: nil
-        )
+        hideKeyboard()
+    }
+    
+    /// キーボードを閉じる（内部実装）
+    private func hideKeyboard() {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+            return
+        }
+        window.endEditing(true)
     }
 }
 
@@ -37,13 +42,17 @@ struct DismissKeyboardOnTapModifier: ViewModifier {
         content
             .contentShape(Rectangle())
             .onTapGesture {
-                UIApplication.shared.sendAction(
-                    #selector(UIResponder.resignFirstResponder),
-                    to: nil,
-                    from: nil,
-                    for: nil
-                )
+                hideKeyboard()
             }
+    }
+    
+    private func hideKeyboard() {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+            return
+        }
+        window.endEditing(true)
     }
 }
 
@@ -52,12 +61,12 @@ extension View {
     func dismissKeyboardOnBackground() -> some View {
         self.simultaneousGesture(
             TapGesture().onEnded {
-                UIApplication.shared.sendAction(
-                    #selector(UIResponder.resignFirstResponder),
-                    to: nil,
-                    from: nil,
-                    for: nil
-                )
+                guard let windowScene = UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                      let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+                    return
+                }
+                window.endEditing(true)
             }
         )
     }

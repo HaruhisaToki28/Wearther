@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct HomeView: View {
     @EnvironmentObject var authService: AuthService
@@ -251,18 +252,36 @@ private struct LocationNotSetCard: View {
     }
 }
 
-// MARK: - Weather Loading Card
+// MARK: - Weather Loading Card (Skeleton)
 private struct WeatherLoadingCard: View {
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
+        HStack(spacing: 16) {
+            // 天気アイコン
+            Circle()
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: 60, height: 60)
+                .shimmer()
             
-            Text("天気情報を取得中...")
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "68717B"))
+            VStack(alignment: .leading, spacing: 8) {
+                // 場所
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 80, height: 14)
+                
+                // 気温
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 100, height: 28)
+                
+                // 天気
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 60, height: 12)
+            }
+            
+            Spacer()
         }
-        .padding(.vertical, 40)
+        .padding(20)
         .frame(maxWidth: .infinity)
         .background(Color.white)
         .cornerRadius(24)
@@ -309,20 +328,36 @@ private struct WeatherErrorCard: View {
     }
 }
 
-// MARK: - Advice Loading Card (AIアドバイスローディング)
+// MARK: - Advice Loading Card (AIアドバイスローディング - Skeleton)
 private struct AdviceLoadingCard: View {
     var body: some View {
-        HStack(spacing: 12) {
-            ProgressView()
-                .scaleEffect(0.8)
+        VStack(alignment: .leading, spacing: 12) {
+            // タイトル
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 24, height: 24)
+                    .shimmer()
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 120, height: 16)
+            }
             
-            Text("AIがコーデを考え中...")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color(hex: "68717B"))
+            // テキスト行
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(height: 14)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 200, height: 14)
+            }
         }
-        .padding(.vertical, 24)
+        .padding(.vertical, 20)
         .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
         .cornerRadius(28)
         .shadow(color: Color.black.opacity(0.03), radius: 9.2, x: 0, y: 0)
@@ -457,30 +492,12 @@ private struct HomePostCard: View {
             // Image - タップで投稿詳細へ
             NavigationLink(destination: PostDetailView(post: post)) {
                 GeometryReader { geometry in
-                    AsyncImage(url: URL(string: post.imageURL)) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: geometry.size.width, height: 180)
-                                .clipped()
-                        case .failure:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(Color(hex: "68717B"))
-                                )
-                        case .empty:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                                .overlay(ProgressView())
-                        @unknown default:
-                            Rectangle()
-                                .fill(Color(hex: "E8EDF5"))
-                        }
-                    }
+                    CachedImage(
+                        url: post.imageURL,
+                        targetSize: CGSize(width: geometry.size.width * 2, height: 360)
+                    )
+                    .frame(width: geometry.size.width, height: 180)
+                    .clipped()
                 }
                 .frame(height: 180)
                 .clipped()
@@ -494,24 +511,7 @@ private struct HomePostCard: View {
                     NavigationLink(destination: UserProfileView(userId: userId)) {
                         HStack(spacing: 8) {
                             // Avatar
-                            if let avatarURL = user?.avatarURL, !avatarURL.isEmpty {
-                                AsyncImage(url: URL(string: avatarURL)) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    Circle().fill(Color(hex: "E8EDF5"))
-                                }
-                                .frame(width: 24, height: 24)
-                                .clipShape(Circle())
-                            } else {
-                                Circle()
-                                    .fill(Color(hex: "E8EDF5"))
-                                    .frame(width: 24, height: 24)
-                                    .overlay(
-                                        Image(systemName: "person.fill")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(Color(hex: "68717B"))
-                                    )
-                            }
+                            CachedAvatarImage(url: user?.avatarURL, size: 24)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(user?.displayName ?? "ユーザー")
@@ -581,17 +581,10 @@ private struct HomePostCard: View {
     }
 }
 
-// MARK: - Post Loading View
+// MARK: - Post Loading View (Skeleton)
 private struct PostLoadingView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-            Text("投稿を読み込み中...")
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "68717B"))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
+        PostGridSkeleton(columns: 2, rows: 3)
     }
 }
 

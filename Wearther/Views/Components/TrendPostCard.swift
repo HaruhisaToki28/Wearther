@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 /// 今日のトレンド用の投稿カード
 /// Figmaデザイン: 208x349px
@@ -27,32 +28,10 @@ struct TrendPostCard: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             // 投稿画像
-            AsyncImage(url: URL(string: post.imageURL)) { phase in
-                switch phase {
-                case .empty:
-                    // ローディング状態
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .overlay {
-                            ProgressView()
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    // エラー時のプレースホルダー
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .overlay {
-                            Image(systemName: "photo")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 30))
-                        }
-                @unknown default:
-                    EmptyView()
-                }
-            }
+            CachedImage(
+                url: post.imageURL,
+                targetSize: CGSize(width: cardWidth * 2, height: cardHeight * 2)
+            )
             .frame(width: cardWidth, height: cardHeight)
             .clipped()
             
