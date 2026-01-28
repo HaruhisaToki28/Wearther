@@ -20,6 +20,9 @@ class ProfileViewModel: ObservableObject {
     @Published var likedPosts: [Post] = []
     @Published var selectedTab: ProfileTab = .posts
     
+    /// リスナーがアクティブかどうか
+    @Published private(set) var isListening = false
+    
     enum ProfileTab {
         case posts
         case likes
@@ -31,14 +34,39 @@ class ProfileViewModel: ObservableObject {
     
 
     init() {
+        startListening()
+    }
+    
+    // MARK: - Listener Management
+    
+    /// リスナーを開始（画面表示時に呼び出し）
+    func startListening() {
+        guard !isListening else { return }
+        isListening = true
+        
         fetchUserData()
         fetchUserPosts()
     }
+    
+    /// リスナーを停止（画面非表示時に呼び出し）
+    func stopListening() {
+        userListener?.remove()
+        userListener = nil
+        
+        postsListener?.remove()
+        postsListener = nil
+        
+        isListening = false
+    }
 
-    func fetchUserData() {
+    private func fetchUserData() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
-        userListener = db.collection("users").document(uid).addSnapshotListener { snapshot, error in
+        // 既存のリスナーを解除してから新しいリスナーを登録
+        userListener?.remove()
+        
+        userListener = db.collection("users").document(uid).addSnapshotListener { [weak self] snapshot, error in
+            guard let self = self else { return }
             guard let document = snapshot, document.exists else {
                 print("ユーザーデータが見つかりません")
                 return
@@ -52,13 +80,17 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
-    func fetchUserPosts() {
+    private func fetchUserPosts() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        // 既存のリスナーを解除してから新しいリスナーを登録
+        postsListener?.remove()
         
         postsListener = db.collection("posts")
             .whereField("userId", isEqualTo: uid)
             .order(by: "createdAt", descending: true)
-            .addSnapshotListener { snapshot, error in
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
                 guard let documents = snapshot?.documents else {
                     print("投稿データが見つかりません: \(error?.localizedDescription ?? "")")
                     return
@@ -99,14 +131,15 @@ class ProfileViewModel: ObservableObject {
         
     func refresh() async {
         isLoading = true
-        fetchUserData()
-        fetchUserPosts()
+        // リスナーを再起動して最新データを取得
+        stopListening()
+        startListening()
         await fetchLikedPosts()
         isLoading = false
     }
-        
 
     deinit {
+        // メインスレッドでリスナーを解除
         userListener?.remove()
         postsListener?.remove()
     }

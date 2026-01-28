@@ -169,6 +169,14 @@ struct ProfileView: View {
                     .environmentObject(authService)
             }
         }
+        .onAppear {
+            // 画面表示時にリスナーを開始
+            viewModel.startListening()
+        }
+        .onDisappear {
+            // 画面非表示時にリスナーを停止（メモリリーク防止）
+            viewModel.stopListening()
+        }
     }
     
     func formatCount(_ count: Int) -> String {
