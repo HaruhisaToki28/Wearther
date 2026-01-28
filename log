@@ -1,0 +1,228 @@
+hato@ip-10-95-2-78 Wearther % firebase functions:log --only generateFashionAdvice                               
+2026-01-23T06:47:13.584619Z D generatefashionadvice: {"verifications":{"auth":"VALID","app":"MISSING"},"message":"Callable request verification passed"}
+2026-01-23T06:47:15.836841Z ? generatefashionadvice: OpenAI API Error: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at APIError.generate (/workspace/node_modules/openai/error.js:63:20)
+    at OpenAI.makeStatusError (/workspace/node_modules/openai/core.js:302:33)
+    at OpenAI.makeRequest (/workspace/node_modules/openai/core.js:346:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /workspace/lib/index.js:48:28
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9c2556b2eb8bd797-NRT',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Fri, 23 Jan 2026 06:47:15 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=KLtmwPm0xl3QXfp67tV1RFi1LLyIKN_3dH1PLuOs9O4-1769150835-1.0.1.1-pTBrSSA2f3HQeh09l1SKiH4dY0C3_QaS6L7s1JdvigjvkQaP9HiqfGwiWE6f5lcAqosnUzV5ZUUS9fqM4n7XibYAwToWT.HUFlsqh67eSl8; path=/; expires=Fri, 23-Jan-26 07:17:15 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=tTGt.u4ZvNvijzqyFMysjh3rsXa9mPJnz2jmzAlML9M-1769150835829-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-envoy-upstream-service-time': '5',
+    'x-openai-proxy-wasm': 'v0.1',
+    'x-request-id': 'req_8ecc6cdb4c6547abb749ab40140b6023'
+  },
+  request_id: 'req_8ecc6cdb4c6547abb749ab40140b6023',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+
+2026-01-23T06:48:00.341408Z I generatefashionadvice: 
+2026-01-23T06:48:00.352490Z D generatefashionadvice: {"message":"Callable request verification passed","verifications":{"auth":"VALID","app":"MISSING"}}
+2026-01-23T06:48:02.146749Z ? generatefashionadvice: OpenAI API Error: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at APIError.generate (/workspace/node_modules/openai/error.js:63:20)
+    at OpenAI.makeStatusError (/workspace/node_modules/openai/core.js:302:33)
+    at OpenAI.makeRequest (/workspace/node_modules/openai/core.js:346:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /workspace/lib/index.js:48:28
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9c2557d46e328dea-NRT',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Fri, 23 Jan 2026 06:48:02 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=413lo.OUnOmiCsyMT71jZGVifOraBj6d_H03lKq50CA-1769150882-1.0.1.1-fFAk2dezMxaez3A2cqbE1LBFhREFdYjR79VRFAFtthqyrsDTyFqhWqiJIl8hY2AVZ5FM4A_iK1XdeKmeCZpBQJnGk6088Cu22fRLWEGkyFY; path=/; expires=Fri, 23-Jan-26 07:18:02 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=8DV6m6oR0AKEMzPnUqksRv16rDa1bCNgLwgnxCEM2zA-1769150882139-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-envoy-upstream-service-time': '4',
+    'x-openai-proxy-wasm': 'v0.1',
+    'x-request-id': 'req_3a149724fba74a8ebef6b78b0c291f4c'
+  },
+  request_id: 'req_3a149724fba74a8ebef6b78b0c291f4c',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+
+2026-01-23T06:56:19.545025447Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"159.28.73.69","callerSuppliedUserAgent":"FirebaseCLI/14.15.1,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-01-23T06:56:18.530562921Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","request":{"function":{"build_config":{"runtime":"nodejs20","source":{},"entry_point":"generateFashionAdvice"},"labels":{"firebase-functions-hash":"a81f0f759da46b019bb8fd369cc08f217088218f","deployment-callable":"true","deployment-tool":"cli-firebase"},"service_config":{"available_memory":"256Mi","timeout_seconds":30,"max_instance_request_concurrency":80,"secret_environment_variables":[{"version":"1","secret":"GEMINI_API_KEY","key":"GEMINI_API_KEY","project_id":"wearther-50918"}],"available_cpu":"1"},"name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice"},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest","update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.secret_environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels"]}},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T06:57:00.062355Z I generatefashionadvice: 
+2026-01-23T06:57:00.075288Z D generatefashionadvice: {"message":"Callable request verification passed","verifications":{"app":"MISSING","auth":"VALID"}}
+2026-01-23T06:57:02.072945Z ? generatefashionadvice: OpenAI API Error: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at APIError.generate (/workspace/node_modules/openai/error.js:63:20)
+    at OpenAI.makeStatusError (/workspace/node_modules/openai/core.js:302:33)
+    at OpenAI.makeRequest (/workspace/node_modules/openai/core.js:346:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /workspace/lib/index.js:48:28
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9c2565025ebd005d-NRT',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Fri, 23 Jan 2026 06:57:02 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=4UrNOfAzRfzb0QxFm1cmHEYjp8PeV39yPrBkV5wH1qU-1769151422-1.0.1.1-MjaxkIUDHyKa3HvOBND76ePc5JEP4brNVCms9TzTqouWDMLXqaNqiKpMMi8a4LVDM4MxY5ccP5cGx5VkiilZSrKcHU3F3edjCoS33QmkhBY; path=/; expires=Fri, 23-Jan-26 07:27:02 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=DnckmPgHeoLNU2EUQDwIPuGEcB9Txot_WdpSSofYTKU-1769151422066-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-envoy-upstream-service-time': '102',
+    'x-openai-proxy-wasm': 'v0.1',
+    'x-request-id': 'req_96698e728e53498b969d396bd25b8e9e'
+  },
+  request_id: 'req_96698e728e53498b969d396bd25b8e9e',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+
+2026-01-23T06:57:08.730696Z I generatefashionadvice: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-01-23T06:57:10.497380Z I generatefashionadvice: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-01-23T06:57:13.255127574Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","response":{"buildConfig":{"serviceAccount":"projects/wearther-50918/serviceAccounts/370786959623-compute@developer.gserviceaccount.com","entryPoint":"generateFashionAdvice","automaticUpdatePolicy":{},"runtime":"nodejs20","dockerRepository":"projects/wearther-50918/locations/asia-northeast1/repositories/gcf-artifacts","dockerRegistry":"ARTIFACT_REGISTRY","source":{}},"createTime":"2026-01-23T06:35:19.476174711Z","environment":"GEN_2","url":"https://asia-northeast1-wearther-50918.cloudfunctions.net/generateFashionAdvice","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","@type":"type.googleapis.com/google.cloud.functions.v2.Function","satisfiesPzi":true,"state":"ACTIVE","serviceConfig":{"maxInstanceRequestConcurrency":80,"revision":"generatefashionadvice-00002-civ","secretEnvironmentVariables":[{"key":"GEMINI_API_KEY","secret":"GEMINI_API_KEY","version":"1","projectId":"wearther-50918"}],"uri":"https://generatefashionadvice-5vn6hrypzq-an.a.run.app","serviceAccountEmail":"370786959623-compute@developer.gserviceaccount.com","allTrafficOnLatestRevision":true,"timeoutSeconds":30,"maxInstanceCount":20,"availableCpu":"1","availableMemory":"256Mi","ingressSettings":"ALLOW_ALL"},"labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"a81f0f759da46b019bb8fd369cc08f217088218f"},"updateTime":"2026-01-23T06:56:19.533648817Z"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T06:57:20.555649Z I generatefashionadvice: 
+2026-01-23T06:57:20.764971Z D generatefashionadvice: {"message":"Callable request verification passed","verifications":{"app":"MISSING","auth":"VALID"}}
+2026-01-23T06:57:20.955985Z ? generatefashionadvice: Gemini API Error: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (/workspace/node_modules/@google/generative-ai/dist/index.js:414:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (/workspace/node_modules/@google/generative-ai/dist/index.js:387:9)
+    at async generateContent (/workspace/node_modules/@google/generative-ai/dist/index.js:832:22)
+    at async /workspace/lib/index.js:43:24
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+
+2026-01-23T06:57:57.580731Z I generatefashionadvice: 
+2026-01-23T06:57:57.589498Z D generatefashionadvice: {"verifications":{"app":"MISSING","auth":"VALID"},"message":"Callable request verification passed"}
+2026-01-23T06:57:57.676247Z ? generatefashionadvice: Gemini API Error: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (/workspace/node_modules/@google/generative-ai/dist/index.js:414:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (/workspace/node_modules/@google/generative-ai/dist/index.js:387:9)
+    at async generateContent (/workspace/node_modules/@google/generative-ai/dist/index.js:832:22)
+    at async /workspace/lib/index.js:43:24
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+
+2026-01-23T07:02:43.448960593Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"159.28.73.69","callerSuppliedUserAgent":"FirebaseCLI/14.15.1,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-01-23T07:02:42.237602880Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","request":{"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest","function":{"name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","build_config":{"source":{},"entry_point":"generateFashionAdvice","runtime":"nodejs20"},"labels":{"deployment-callable":"true","firebase-functions-hash":"ce63599d1e4dece1e108cfb9212237279cbbb813","deployment-tool":"cli-firebase"},"service_config":{"available_cpu":"1","secret_environment_variables":[{"secret":"GEMINI_API_KEY","version":"1","key":"GEMINI_API_KEY","project_id":"wearther-50918"}],"timeout_seconds":30,"available_memory":"256Mi","max_instance_request_concurrency":80}},"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.secret_environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels"]}},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T07:03:26.364985Z I generatefashionadvice: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-01-23T07:03:27.933670Z I generatefashionadvice: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-01-23T07:03:29.581983066Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","response":{"createTime":"2026-01-23T06:35:19.476174711Z","@type":"type.googleapis.com/google.cloud.functions.v2.Function","url":"https://asia-northeast1-wearther-50918.cloudfunctions.net/generateFashionAdvice","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","serviceConfig":{"allTrafficOnLatestRevision":true,"serviceAccountEmail":"370786959623-compute@developer.gserviceaccount.com","revision":"generatefashionadvice-00003-lig","maxInstanceCount":20,"maxInstanceRequestConcurrency":80,"uri":"https://generatefashionadvice-5vn6hrypzq-an.a.run.app","secretEnvironmentVariables":[{"secret":"GEMINI_API_KEY","projectId":"wearther-50918","key":"GEMINI_API_KEY","version":"1"}],"timeoutSeconds":30,"availableMemory":"256Mi","ingressSettings":"ALLOW_ALL","availableCpu":"1"},"labels":{"firebase-functions-hash":"ce63599d1e4dece1e108cfb9212237279cbbb813","deployment-tool":"cli-firebase","deployment-callable":"true"},"updateTime":"2026-01-23T07:02:43.433734504Z","satisfiesPzi":true,"buildConfig":{"entryPoint":"generateFashionAdvice","serviceAccount":"projects/wearther-50918/serviceAccounts/370786959623-compute@developer.gserviceaccount.com","dockerRepository":"projects/wearther-50918/locations/asia-northeast1/repositories/gcf-artifacts","dockerRegistry":"ARTIFACT_REGISTRY","source":{},"runtime":"nodejs20","automaticUpdatePolicy":{}},"environment":"GEN_2","state":"ACTIVE"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T07:04:30.723253Z I generatefashionadvice: 
+2026-01-23T07:04:30.881859Z D generatefashionadvice: {"verifications":{"auth":"VALID","app":"MISSING"},"message":"Callable request verification passed"}
+2026-01-23T07:04:31.073282Z ? generatefashionadvice: Gemini API Error: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 28.970475663s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"28s"}]
+    at handleResponseNotOk (/workspace/node_modules/@google/generative-ai/dist/index.js:414:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (/workspace/node_modules/@google/generative-ai/dist/index.js:387:9)
+    at async generateContent (/workspace/node_modules/@google/generative-ai/dist/index.js:832:22)
+    at async /workspace/lib/index.js:43:24
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 429,
+  statusText: 'Too Many Requests',
+  errorDetails: [
+    { '@type': 'type.googleapis.com/google.rpc.Help', links: [Array] },
+    {
+      '@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+      violations: [Array]
+    },
+    {
+      '@type': 'type.googleapis.com/google.rpc.RetryInfo',
+      retryDelay: '28s'
+    }
+  ]
+}
+
+2026-01-23T07:06:41.578933305Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"159.28.73.69","callerSuppliedUserAgent":"FirebaseCLI/14.15.1,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-01-23T07:06:40.314854949Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","request":{"function":{"build_config":{"runtime":"nodejs20","entry_point":"generateFashionAdvice","source":{}},"service_config":{"timeout_seconds":30,"max_instance_request_concurrency":80,"secret_environment_variables":[{"key":"GEMINI_API_KEY","version":"1","secret":"GEMINI_API_KEY","project_id":"wearther-50918"}],"available_memory":"256Mi","available_cpu":"1"},"name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","labels":{"firebase-functions-hash":"9a55e4015a51da1d648e595ff708d1febb1e6b06","deployment-callable":"true","deployment-tool":"cli-firebase"}},"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.secret_environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels"]},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest"},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T07:07:15.371910Z I generatefashionadvice: 
+2026-01-23T07:07:15.385856Z D generatefashionadvice: {"verifications":{"app":"MISSING","auth":"VALID"},"message":"Callable request verification passed"}
+2026-01-23T07:07:15.486405Z ? generatefashionadvice: Gemini API Error: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 44.54469166s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"44s"}]
+    at handleResponseNotOk (/workspace/node_modules/@google/generative-ai/dist/index.js:414:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (/workspace/node_modules/@google/generative-ai/dist/index.js:387:9)
+    at async generateContent (/workspace/node_modules/@google/generative-ai/dist/index.js:832:22)
+    at async /workspace/lib/index.js:43:24
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 429,
+  statusText: 'Too Many Requests',
+  errorDetails: [
+    { '@type': 'type.googleapis.com/google.rpc.Help', links: [Array] },
+    {
+      '@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+      violations: [Array]
+    },
+    {
+      '@type': 'type.googleapis.com/google.rpc.RetryInfo',
+      retryDelay: '44s'
+    }
+  ]
+}
+
+2026-01-23T07:07:24.555844Z I generatefashionadvice: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-01-23T07:07:26.110534Z I generatefashionadvice: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-01-23T07:07:30.029257653Z N generateFashionAdvice: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"haruhisa.toki0208@gmail.com","principalSubject":"user:haruhisa.toki0208@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","response":{"environment":"GEN_2","labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"9a55e4015a51da1d648e595ff708d1febb1e6b06","deployment-callable":"true"},"updateTime":"2026-01-23T07:06:41.565506106Z","createTime":"2026-01-23T06:35:19.476174711Z","serviceConfig":{"availableCpu":"1","timeoutSeconds":30,"ingressSettings":"ALLOW_ALL","allTrafficOnLatestRevision":true,"serviceAccountEmail":"370786959623-compute@developer.gserviceaccount.com","uri":"https://generatefashionadvice-5vn6hrypzq-an.a.run.app","maxInstanceRequestConcurrency":80,"availableMemory":"256Mi","secretEnvironmentVariables":[{"secret":"GEMINI_API_KEY","projectId":"wearther-50918","key":"GEMINI_API_KEY","version":"1"}],"maxInstanceCount":20,"revision":"generatefashionadvice-00004-luq"},"satisfiesPzi":true,"@type":"type.googleapis.com/google.cloud.functions.v2.Function","buildConfig":{"runtime":"nodejs20","source":{},"entryPoint":"generateFashionAdvice","automaticUpdatePolicy":{},"dockerRepository":"projects/wearther-50918/locations/asia-northeast1/repositories/gcf-artifacts","dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/wearther-50918/serviceAccounts/370786959623-compute@developer.gserviceaccount.com"},"state":"ACTIVE","name":"projects/wearther-50918/locations/asia-northeast1/functions/generateFashionAdvice","url":"https://asia-northeast1-wearther-50918.cloudfunctions.net/generateFashionAdvice"},"resourceLocation":{"currentLocations":["asia-northeast1"]}}
+2026-01-23T07:08:25.447927Z I generatefashionadvice: 
+2026-01-23T07:08:25.605481Z D generatefashionadvice: {"message":"Callable request verification passed","verifications":{"app":"MISSING","auth":"VALID"}}
+2026-01-23T07:08:25.786576Z ? generatefashionadvice: Gemini API Error: GoogleGenerativeAIFetchError: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent: [404 Not Found] models/gemini-1.5-flash-8b is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at handleResponseNotOk (/workspace/node_modules/@google/generative-ai/dist/index.js:414:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async makeRequest (/workspace/node_modules/@google/generative-ai/dist/index.js:387:9)
+    at async generateContent (/workspace/node_modules/@google/generative-ai/dist/index.js:832:22)
+    at async /workspace/lib/index.js:44:24
+    at async /workspace/node_modules/firebase-functions/lib/common/providers/https.js:467:26 {
+  status: 404,
+  statusText: 'Not Found',
+  errorDetails: undefined
+}
+
+hato@ip-10-95-2-78 Wearther % 

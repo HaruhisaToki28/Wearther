@@ -130,6 +130,182 @@ class PostService: ObservableObject {
         }
     }
     
+    // MARK: - Fetch Recommended Posts (天気ベースのおすすめ)
+    /// 現在の天気に基づいておすすめの投稿を取得
+    /// 条件: 気温差5度以内の投稿のみ
+    /// 優先順位: 気温(高) > 天気(中) > 場所(低)
+    func fetchRecommendedPosts(
+        currentTemperature: Int,
+        currentWeather: PostWeather,
+        currentLocation: String,
+        limit: Int = 50
+    ) async throws -> [Post] {
+        // 全投稿を取得（パフォーマンスのため上限設定）
+        let snapshot = try await db.collection("posts")
+            .order(by: "createdAt", descending: true)
+            .limit(to: 200)
+            .getDocuments()
+        
+        let allPosts = snapshot.documents.compactMap { doc in
+            try? doc.data(as: Post.self)
+        }
+        
+        // 気温差が5度以内の投稿のみをフィルタリング
+        let filteredPosts = allPosts.filter { post in
+            let tempDiff = abs(post.temperature - currentTemperature)
+            return tempDiff <= 5
+        }
+        
+        // スコア計算してソート
+        let scoredPosts = filteredPosts.map { post -> (post: Post, score: Double) in
+            let score = calculateRecommendationScore(
+                post: post,
+                currentTemperature: currentTemperature,
+                currentWeather: currentWeather,
+                currentLocation: currentLocation
+            )
+            return (post, score)
+        }
+        
+        // スコアの高い順にソート
+        let sortedPosts = scoredPosts.sorted { $0.score > $1.score }
+        
+        return Array(sortedPosts.prefix(limit).map { $0.post })
+    }
+    
+    /// おすすめスコアを計算
+    /// 気温: 重み高（0-50点）、天気: 重み中（0-30点）、場所: 重み低（0-20点）
+    private func calculateRecommendationScore(
+        post: Post,
+        currentTemperature: Int,
+        currentWeather: PostWeather,
+        currentLocation: String
+    ) -> Double {
+        var score: Double = 0
+        
+        // 気温スコア（重み: 高）
+        // 気温差が小さいほど高スコア（最大50点）
+        let tempDiff = abs(post.temperature - currentTemperature)
+        let tempScore = max(0, 50 - Double(tempDiff) * 5) // 1度差ごとに5点減点
+        score += tempScore
+        
+        // 天気スコア（重み: 中）
+        // 同じ天気なら30点、近い天気なら15点
+        if post.weather == currentWeather {
+            score += 30
+        } else if isSimilarWeather(post.weather, currentWeather) {
+            score += 15
+        }
+        
+        // 場所スコア（重み: 低）
+        // 同じ都道府県なら20点、近い地域なら10点
+        if post.location.name.contains(currentLocation) || currentLocation.contains(post.location.name) {
+            score += 20
+        } else if isSameRegion(post.location.name, currentLocation) {
+            score += 10
+        }
+        
+        return score
+    }
+    
+    /// 似た天気かどうか判定
+    private func isSimilarWeather(_ weather1: PostWeather, _ weather2: PostWeather) -> Bool {
+        let similarGroups: [[PostWeather]] = [
+            [.sunny, .cloudy],  // 晴れと曇りは近い
+            [.rainy, .cloudy],  // 雨と曇りは近い
+        ]
+        
+        for group in similarGroups {
+            if group.contains(weather1) && group.contains(weather2) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    /// 同じ地域かどうか判定（簡易版）
+    private func isSameRegion(_ location1: String, _ location2: String) -> Bool {
+        let regions: [[String]] = [
+            ["北海道"],
+            ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"], // 東北
+            ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"], // 関東
+            ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"], // 中部
+            ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"], // 近畿
+            ["鳥取県", "島根県", "岡山県", "広島県", "山口県"], // 中国
+            ["徳島県", "香川県", "愛媛県", "高知県"], // 四国
+            ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県"], // 九州
+            ["沖縄県"]
+        ]
+        
+        for region in regions {
+            let contains1 = region.contains { location1.contains($0) }
+            let contains2 = region.contains { location2.contains($0) }
+            if contains1 && contains2 {
+                return true
+            }
+        }
+        return false
+    }
+    
+    // MARK: - Fetch Following Posts (フォロー中ユーザーの投稿)
+    /// フォロー中ユーザーの過去7日間の投稿を取得
+    func fetchFollowingPosts(userId: String, limit: Int = 50) async throws -> [Post] {
+        // 1. フォロー中のユーザーIDを取得
+        let followingIds = try await fetchFollowingUserIds(userId: userId)
+        
+        if followingIds.isEmpty {
+            return []
+        }
+        
+        // 2. 過去7日間の日付を計算
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        
+        // 3. フォロー中ユーザーの投稿を取得
+        // Firestoreの「in」クエリは最大10件なので、分割して取得
+        var allPosts: [Post] = []
+        let chunks = followingIds.chunked(into: 10)
+        
+        for chunk in chunks {
+            let snapshot = try await db.collection("posts")
+                .whereField("userId", in: chunk)
+                .whereField("createdAt", isGreaterThanOrEqualTo: Timestamp(date: sevenDaysAgo))
+                .getDocuments()
+            
+            let posts = snapshot.documents.compactMap { doc in
+                try? doc.data(as: Post.self)
+            }
+            allPosts.append(contentsOf: posts)
+        }
+        
+        // 作成日時でソート（新しい順）
+        allPosts.sort { $0.createdAt > $1.createdAt }
+        
+        return Array(allPosts.prefix(limit))
+    }
+    
+    // MARK: - Fetch Following User IDs
+    /// ユーザーがフォローしているユーザーのIDリストを取得
+    func fetchFollowingUserIds(userId: String) async throws -> [String] {
+        let snapshot = try await db.collection("users")
+            .document(userId)
+            .collection("following")
+            .getDocuments()
+        
+        return snapshot.documents.map { $0.documentID }
+    }
+    
+    // MARK: - Check if user has following
+    /// ユーザーがフォロー中のユーザーを持っているかチェック
+    func hasFollowing(userId: String) async throws -> Bool {
+        let snapshot = try await db.collection("users")
+            .document(userId)
+            .collection("following")
+            .limit(to: 1)
+            .getDocuments()
+        
+        return !snapshot.documents.isEmpty
+    }
+    
     // MARK: - Fetch User's Posts
     func fetchUserPosts(userId: String, limit: Int = 20) async throws -> [Post] {
         // 複合インデックスを避けるため、フィルタのみでクエリしてメモリでソート
