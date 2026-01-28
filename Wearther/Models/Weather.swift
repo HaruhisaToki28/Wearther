@@ -71,6 +71,20 @@ enum WeatherCondition: String, Codable {
             return "cloud.snow.fill"
         }
     }
+    
+    /// PostWeatherに変換
+    func toPostWeather() -> PostWeather {
+        switch self {
+        case .sunny:
+            return .sunny
+        case .cloudy, .partlyCloudy:
+            return .cloudy
+        case .rainy:
+            return .rainy
+        case .snowy:
+            return .snowy
+        }
+    }
 }
 
 

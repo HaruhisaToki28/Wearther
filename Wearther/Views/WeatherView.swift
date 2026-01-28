@@ -12,47 +12,14 @@ import Combine
 struct WeatherView: View {
     @StateObject private var weatherService = WeatherService.shared
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var viewModel = WeatherViewModel()
+    @EnvironmentObject private var authService: AuthService
     
     @State private var locationName: String = "現在地を取得中..."
     @State private var isShowingSearch: Bool = false
     @State private var isUsingCurrentLocation: Bool = true
     @State private var selectedLocation: LocationSearchResult?
-    
-    // モックのOutfitデータ（実際にはViewModelから取得）
-    private let mockOutfits: [OutfitRecommendation] = [
-        OutfitRecommendation(
-            userId: "1", userName: "蘭丸",
-            userAvatarURL: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-            userHeight: 175,
-            imageURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-            weatherSnapshot: WeatherSnapshot(temperature: 19.0, condition: .partlyCloudy),
-            likes: 120, isLiked: false
-        ),
-        OutfitRecommendation(
-            userId: "2", userName: "太郎",
-            userAvatarURL: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-            userHeight: 175,
-            imageURL: "https://images.unsplash.com/photo-1492447166138-50c3889fccb1",
-            weatherSnapshot: WeatherSnapshot(temperature: 18.0, condition: .cloudy),
-            likes: 98, isLiked: false
-        ),
-        OutfitRecommendation(
-            userId: "3", userName: "花子",
-            userAvatarURL: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-            userHeight: 165,
-            imageURL: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f",
-            weatherSnapshot: WeatherSnapshot(temperature: 16.0, condition: .rainy),
-            likes: 155, isLiked: true
-        ),
-        OutfitRecommendation(
-            userId: "4", userName: "次郎",
-            userAvatarURL: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91",
-            userHeight: 180,
-            imageURL: "https://images.unsplash.com/photo-1503341504253-dff4815485f1",
-            weatherSnapshot: WeatherSnapshot(temperature: 14.0, condition: .cloudy),
-            likes: 64, isLiked: false
-        )
-    ]
+    @State private var hasLoadedOutfits: Bool = false
     
     // WeatherNewsデータをWeatherモデルに変換
     private var currentWeatherModel: Weather? {
@@ -76,6 +43,7 @@ struct WeatherView: View {
     }
     
     var body: some View {
+        NavigationStack {
         VStack(spacing: 0) {
             // MARK: - Header with Search Bar
             HStack(spacing: 12) {
@@ -138,15 +106,21 @@ struct WeatherView: View {
                     }
                     
                     // Weather + Outfit Section
-                    if !weatherService.getWeeklyForecast().isEmpty {
-                        WeeklyWithOutfitSection(
-                            forecasts: weatherService.getWeeklyForecast(),
-                            outfits: mockOutfits
-                        )
+                    if !viewModel.weeklyOutfits.isEmpty {
+                        WeeklyWithOutfitSection(weeklyOutfits: viewModel.weeklyOutfits)
+                    } else if !weatherService.getWeeklyForecast().isEmpty && viewModel.isLoading {
+                        WeeklyOutfitLoadingSection()
                     }
                     
                     // Outfit Recommendations for Today's Weather
-                    TodayOutfitSection(outfits: mockOutfits)
+                    TodayOutfitSection(
+                        outfits: viewModel.todayOutfits,
+                        onLikeTapped: { outfit in
+                            Task {
+                                await viewModel.toggleLike(for: outfit)
+                            }
+                        }
+                    )
                     
                     Spacer().frame(height: 30)
                 }
@@ -155,9 +129,12 @@ struct WeatherView: View {
             }
             .refreshable {
                 await refreshWeather()
+                await loadOutfits()
             }
         }
         .background(Color(hex: "F8F8F8"))
+        .navigationBarHidden(true)
+        }
         .onAppear {
             if isUsingCurrentLocation {
                 locationManager.requestLocation()
@@ -167,6 +144,7 @@ struct WeatherView: View {
             if isUsingCurrentLocation, let location = newLocation {
                 Task {
                     await fetchWeatherForLocation(location)
+                    await loadOutfits()
                 }
             }
         }
@@ -175,6 +153,23 @@ struct WeatherView: View {
                 selectSearchedLocation(result)
             }
         }
+    }
+    
+    // MARK: - Load Outfits
+    private func loadOutfits() async {
+        guard let weatherData = weatherService.currentWeather,
+              let today = weatherData.mrf.first,
+              let current = weatherData.srf.first else {
+            return
+        }
+        
+        await viewModel.loadOutfits(
+            forecasts: weatherData.mrf,
+            currentTemperature: Int(today.maxtemp),
+            currentWeather: current.weatherCondition,
+            location: locationName,
+            userId: authService.currentUser?.id
+        )
     }
     
     // MARK: - Actions
@@ -201,6 +196,7 @@ struct WeatherView: View {
                 latitude: result.latitude,
                 longitude: result.longitude
             )
+            await loadOutfits()
         }
     }
     
@@ -363,8 +359,7 @@ private struct CompactWeatherIcon: View {
 
 // MARK: - Weekly With Outfit Section
 private struct WeeklyWithOutfitSection: View {
-    let forecasts: [MediumRangeForecast]
-    let outfits: [OutfitRecommendation]
+    let weeklyOutfits: [WeatherWeeklyOutfit]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -374,10 +369,9 @@ private struct WeeklyWithOutfitSection: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(Array(forecasts.prefix(5).enumerated()), id: \.element.id) { index, forecast in
+                    ForEach(Array(weeklyOutfits.prefix(7).enumerated()), id: \.element.id) { index, item in
                         WeeklyOutfitCard(
-                            forecast: forecast,
-                            outfit: outfits.indices.contains(index) ? outfits[index] : nil,
+                            item: item,
                             isToday: index == 0
                         )
                     }
@@ -387,9 +381,25 @@ private struct WeeklyWithOutfitSection: View {
     }
 }
 
+private struct WeeklyOutfitLoadingSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("週間予報 & おすすめコーデ")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color(hex: "2D2D2D"))
+            
+            HStack {
+                Spacer()
+                ProgressView()
+                    .padding(.vertical, 40)
+                Spacer()
+            }
+        }
+    }
+}
+
 private struct WeeklyOutfitCard: View {
-    let forecast: MediumRangeForecast
-    let outfit: OutfitRecommendation?
+    let item: WeatherWeeklyOutfit
     let isToday: Bool
     
     private let cardWidth: CGFloat = 100
@@ -397,58 +407,35 @@ private struct WeeklyOutfitCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Outfit Image Background - 固定サイズ
-            ZStack {
-                // 背景を先に配置して固定サイズを確保
+            // Outfit Image Background - 画像タップで投稿詳細へ
+            if let post = item.recommendedPost {
+                NavigationLink(destination: PostDetailView(post: post)) {
+                    outfitImageView(post: post)
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
                 gradientPlaceholder
-                
-                // 画像をオーバーレイ
-                if let outfit = outfit, let urlString = outfit.imageURL, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        default:
-                            EmptyView()
-                        }
+                    .frame(width: cardWidth, height: imageHeight)
+                    .clipped()
+                    .overlay(alignment: .bottomLeading) {
+                        weatherOverlay
                     }
-                }
-            }
-            .frame(width: cardWidth, height: imageHeight)
-            .clipped()
-            .overlay(alignment: .bottomLeading) {
-                // Weather overlay
-                HStack {
-                    CompactWeatherIcon(condition: forecast.weatherCondition, size: 18)
-                        .frame(width: 22, height: 22)
-                    Spacer()
-                }
-                .padding(8)
-                .background(
-                    LinearGradient(
-                        colors: [Color.black.opacity(0.5), Color.clear],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                )
             }
             
             // Date & Temp
             VStack(spacing: 4) {
-                // 日付表示 - モデルのformattedDateを使用
-                Text(isToday ? "今日" : forecast.formattedDate)
+                // 日付表示
+                Text(isToday ? "今日" : item.forecast.formattedDate)
                     .font(.system(size: 11, weight: .bold))
                     .foregroundColor(Color(hex: "2D2D2D"))
                     .frame(height: 14)
                 
                 HStack(spacing: 4) {
-                    Text("\(Int(forecast.maxtemp))°")
+                    Text("\(Int(item.forecast.maxtemp))°")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(Color(hex: "FF2539"))
                         .frame(width: 28, alignment: .trailing)
-                    Text("\(Int(forecast.mintemp))°")
+                    Text("\(Int(item.forecast.mintemp))°")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(Color(hex: "3582DC"))
                         .frame(width: 28, alignment: .leading)
@@ -459,7 +446,7 @@ private struct WeeklyOutfitCard: View {
                     Image(systemName: "drop.fill")
                         .font(.system(size: 8))
                         .foregroundColor(Color(hex: "08C4FA"))
-                    Text("\(forecast.pop)%")
+                    Text("\(item.forecast.pop)%")
                         .font(.system(size: 10))
                         .foregroundColor(Color(hex: "68717B"))
                 }
@@ -472,6 +459,44 @@ private struct WeeklyOutfitCard: View {
         .frame(width: cardWidth)
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 4)
+    }
+    
+    private func outfitImageView(post: Post) -> some View {
+        ZStack {
+            gradientPlaceholder
+            
+            AsyncImage(url: URL(string: post.imageURL)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                default:
+                    EmptyView()
+                }
+            }
+        }
+        .frame(width: cardWidth, height: imageHeight)
+        .clipped()
+        .overlay(alignment: .bottomLeading) {
+            weatherOverlay
+        }
+    }
+    
+    private var weatherOverlay: some View {
+        HStack {
+            CompactWeatherIcon(condition: item.forecast.weatherCondition, size: 18)
+                .frame(width: 22, height: 22)
+            Spacer()
+        }
+        .padding(8)
+        .background(
+            LinearGradient(
+                colors: [Color.black.opacity(0.5), Color.clear],
+                startPoint: .bottom,
+                endPoint: .top
+            )
+        )
     }
     
     private var gradientPlaceholder: some View {
@@ -490,38 +515,36 @@ private struct WeeklyOutfitCard: View {
 
 // MARK: - Today Outfit Section
 private struct TodayOutfitSection: View {
-    let outfits: [OutfitRecommendation]
-    @State private var likedStates: [UUID: Bool] = [:]
+    let outfits: [WeatherTodayOutfit]
+    let onLikeTapped: (WeatherTodayOutfit) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("今日の気温に合うコーデ")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Color(hex: "2D2D2D"))
-                
-                Spacer()
-                
-                Button(action: {}) {
-                    Text("もっと見る")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "68717B"))
-                }
-            }
+            Text("今日の気温に合うコーデ")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color(hex: "2D2D2D"))
             
-            // 2列グリッド - 固定サイズ
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                ForEach(outfits.prefix(4)) { outfit in
-                    CompactOutfitCard(
-                        recommendation: outfit,
-                        isLiked: likedStates[outfit.id] ?? outfit.isLiked,
-                        onLikeTapped: {
-                            likedStates[outfit.id] = !(likedStates[outfit.id] ?? outfit.isLiked)
-                        }
-                    )
+            if outfits.isEmpty {
+                HStack {
+                    Spacer()
+                    Text("おすすめコーデがありません")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .padding(.vertical, 40)
+                    Spacer()
+                }
+            } else {
+                // 2列グリッド
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 12) {
+                    ForEach(outfits.prefix(4)) { outfit in
+                        CompactOutfitCard(
+                            outfit: outfit,
+                            onLikeTapped: { onLikeTapped(outfit) }
+                        )
+                    }
                 }
             }
         }
@@ -529,8 +552,7 @@ private struct TodayOutfitSection: View {
 }
 
 private struct CompactOutfitCard: View {
-    let recommendation: OutfitRecommendation
-    let isLiked: Bool
+    let outfit: WeatherTodayOutfit
     let onLikeTapped: () -> Void
     
     // カードの固定サイズ
@@ -542,20 +564,20 @@ private struct CompactOutfitCard: View {
             let cardWidth = geometry.size.width
             
             VStack(spacing: 0) {
-                // Image セクション - GeometryReaderで幅を取得して固定
-                ZStack {
-                    // プレースホルダーを先に配置（固定サイズを確保）
-                    Rectangle()
-                        .fill(Color(hex: "E8EDF5"))
-                        .overlay(
-                            Image(systemName: "photo")
-                                .font(.system(size: 24))
-                                .foregroundColor(Color(hex: "68717B").opacity(0.5))
-                        )
-                    
-                    // 画像をオーバーレイ
-                    if let urlString = recommendation.imageURL, let url = URL(string: urlString) {
-                        AsyncImage(url: url) { phase in
+                // Image セクション - 画像タップで投稿詳細へ
+                NavigationLink(destination: PostDetailView(post: outfit.post)) {
+                    ZStack {
+                        // プレースホルダー
+                        Rectangle()
+                            .fill(Color(hex: "E8EDF5"))
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(Color(hex: "68717B").opacity(0.5))
+                            )
+                        
+                        // 画像
+                        AsyncImage(url: URL(string: outfit.post.imageURL)) { phase in
                             switch phase {
                             case .success(let image):
                                 image
@@ -569,63 +591,97 @@ private struct CompactOutfitCard: View {
                             }
                         }
                     }
+                    .frame(width: cardWidth, height: imageHeight)
+                    .clipped()
                 }
-                .frame(width: cardWidth, height: imageHeight)
-                .clipped()
+                .buttonStyle(PlainButtonStyle())
                 .overlay(alignment: .topTrailing) {
-                    // Like button - 常に表示
+                    // Like button
                     Button(action: onLikeTapped) {
                         ZStack {
                             Circle()
                                 .fill(Color.black.opacity(0.3))
                                 .frame(width: 32, height: 32)
                             
-                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                            Image(systemName: outfit.isLiked ? "heart.fill" : "heart")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(isLiked ? Color(hex: "FF2539") : .white)
+                                .foregroundColor(outfit.isLiked ? Color(hex: "FF2539") : .white)
                         }
                     }
                     .padding(8)
                 }
                 
-                // Info セクション - 固定高さ
+                // Info セクション
                 HStack(spacing: 8) {
-                    // Avatar - 固定サイズ
-                    AsyncImage(url: URL(string: recommendation.userAvatarURL ?? "")) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        default:
+                    // Avatar & Name - タップでプロフィールへ
+                    if let user = outfit.user, let userId = user.id {
+                        NavigationLink(destination: UserProfileView(userId: userId)) {
+                            HStack(spacing: 8) {
+                                // Avatar
+                                if let avatarURL = user.avatarURL, !avatarURL.isEmpty {
+                                    AsyncImage(url: URL(string: avatarURL)) { image in
+                                        image.resizable().scaledToFill()
+                                    } placeholder: {
+                                        Circle().fill(Color(hex: "E8EDF5"))
+                                    }
+                                    .frame(width: 22, height: 22)
+                                    .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(Color(hex: "E8EDF5"))
+                                        .frame(width: 22, height: 22)
+                                        .overlay(
+                                            Image(systemName: "person.fill")
+                                                .font(.system(size: 10))
+                                                .foregroundColor(Color(hex: "68717B"))
+                                        )
+                                }
+                                
+                                // ユーザー情報
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(user.displayName)
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundColor(Color(hex: "2D2D2D"))
+                                        .lineLimit(1)
+                                    
+                                    Text("\(outfit.post.temperature)°C")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(Color(hex: "AAAAAA"))
+                                }
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else {
+                        // ユーザー情報がない場合
+                        HStack(spacing: 8) {
                             Circle()
                                 .fill(Color(hex: "E8EDF5"))
+                                .frame(width: 22, height: 22)
                                 .overlay(
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 10))
                                         .foregroundColor(Color(hex: "68717B"))
                                 )
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("ユーザー")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(Color(hex: "2D2D2D"))
+                                    .lineLimit(1)
+                                
+                                Text("\(outfit.post.temperature)°C")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Color(hex: "AAAAAA"))
+                            }
                         }
-                    }
-                    .frame(width: 22, height: 22)
-                    .clipShape(Circle())
-                    
-                    // ユーザー情報
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(recommendation.userName)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color(hex: "2D2D2D"))
-                            .lineLimit(1)
-                        
-                        Text("\(Int(recommendation.weatherSnapshot.temperature))°C")
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "AAAAAA"))
                     }
                     
                     Spacer()
                     
-                    // Weather icon - 固定サイズ
-                    CompactWeatherIcon(condition: recommendation.weatherSnapshot.condition, size: 16)
+                    // Weather icon
+                    Image(systemName: outfit.post.weather.symbolName)
+                        .font(.system(size: 16))
+                        .foregroundColor(Color(hex: "68717B"))
                         .frame(width: 20, height: 20)
                 }
                 .padding(.horizontal, 12)
@@ -728,4 +784,5 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
 #Preview {
     WeatherView()
+        .environmentObject(AuthService())
 }
