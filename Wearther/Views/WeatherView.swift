@@ -389,13 +389,47 @@ private struct WeeklyOutfitLoadingSection: View {
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(Color(hex: "2D2D2D"))
             
-            HStack {
-                Spacer()
-                ProgressView()
-                    .padding(.vertical, 40)
-                Spacer()
+            // スケルトン表示
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        WeeklyOutfitCardSkeleton()
+                    }
+                }
             }
         }
+    }
+}
+
+// 週間予報カードスケルトン
+private struct WeeklyOutfitCardSkeleton: View {
+    private let cardWidth: CGFloat = 100
+    private let imageHeight: CGFloat = 120
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // 画像部分
+            Rectangle()
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: cardWidth, height: imageHeight)
+                .shimmer()
+            
+            // 日付・気温部分
+            VStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 40, height: 12)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 50, height: 10)
+            }
+            .padding(.vertical, 10)
+        }
+        .frame(width: cardWidth)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -648,18 +682,42 @@ private struct CompactOutfitCard: View {
     }
 }
 
-// MARK: - Loading & Empty States
+// MARK: - Loading & Empty States (Skeleton)
 private struct LoadingWeatherCard: View {
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
+        HStack(spacing: 16) {
+            // 天気アイコン
+            Circle()
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: 70, height: 70)
+                .shimmer()
             
-            Text("天気データを取得中...")
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "68717B"))
+            VStack(alignment: .leading, spacing: 10) {
+                // 場所
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 80, height: 14)
+                
+                // 気温
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 120, height: 32)
+                
+                // 天気詳細
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(hex: "E8EDF5"))
+                        .frame(width: 50, height: 12)
+                    
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(hex: "E8EDF5"))
+                        .frame(width: 70, height: 12)
+                }
+            }
+            
+            Spacer()
         }
-        .padding(.vertical, 36)
+        .padding(20)
         .frame(maxWidth: .infinity)
         .background(Color.white)
         .cornerRadius(24)

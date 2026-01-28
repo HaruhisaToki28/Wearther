@@ -110,7 +110,17 @@ struct FashionView: View {
             )
             
             // トレンド投稿一覧（横スクロール）
-            if viewModel.trendPosts.isEmpty && !viewModel.isLoading {
+            if viewModel.isLoading && viewModel.trendPosts.isEmpty {
+                // スケルトン表示
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 11) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            TrendPostCardSkeleton()
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            } else if viewModel.trendPosts.isEmpty {
                 emptyStateView(message: "トレンド投稿がありません")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -145,7 +155,17 @@ struct FashionView: View {
             )
             
             // おすすめユーザー一覧（横スクロール）
-            if viewModel.recommendedUsers.isEmpty && !viewModel.isLoading {
+            if viewModel.isLoading && viewModel.recommendedUsers.isEmpty {
+                // スケルトン表示
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            RecommendedUserCardSkeleton()
+                        }
+                    }
+                    .padding(.horizontal, 13)
+                }
+            } else if viewModel.recommendedUsers.isEmpty {
                 emptyStateView(message: "おすすめユーザーがいません")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -180,7 +200,17 @@ struct FashionView: View {
             )
             
             // ランキング投稿一覧（横スクロール）
-            if viewModel.rankingPosts.isEmpty && !viewModel.isLoading {
+            if viewModel.isLoading && viewModel.rankingPosts.isEmpty {
+                // スケルトン表示
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 11) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            RankingPostCardSkeleton()
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            } else if viewModel.rankingPosts.isEmpty {
                 emptyStateView(message: "ランキングデータがありません")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -294,17 +324,109 @@ struct FashionView: View {
     private func emptyStateView(message: String) -> some View {
         HStack {
             Spacer()
-            if viewModel.isLoading {
-                ProgressView()
-                    .padding(.vertical, 40)
-            } else {
-                Text(message)
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                    .padding(.vertical, 40)
-            }
+            Text(message)
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+                .padding(.vertical, 40)
             Spacer()
         }
+    }
+}
+
+// MARK: - Fashion Skeleton Components
+
+/// トレンド投稿カードスケルトン
+private struct TrendPostCardSkeleton: View {
+    private let cardWidth: CGFloat = 208
+    private let cardHeight: CGFloat = 349
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: cardWidth, height: cardHeight - 40)
+                .shimmer()
+            
+            // ユーザー情報部分
+            HStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 100, height: 12)
+                Spacer()
+            }
+            .padding(12)
+        }
+        .frame(width: cardWidth, height: cardHeight)
+        .background(Color.white)
+        .cornerRadius(10)
+        .shadow(color: .black.opacity(0.03), radius: 9.2, x: 0, y: 0)
+    }
+}
+
+/// おすすめユーザーカードスケルトン
+private struct RecommendedUserCardSkeleton: View {
+    private let cardWidth: CGFloat = 179
+    private let cardHeight: CGFloat = 251
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // 投稿画像部分
+            HStack(spacing: 0) {
+                Rectangle()
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: cardWidth / 2, height: 125)
+                Rectangle()
+                    .fill(Color(hex: "DDE2E2"))
+                    .frame(width: cardWidth / 2, height: 125)
+            }
+            .shimmer()
+            
+            Spacer()
+            
+            // アバター
+            Circle()
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: 70, height: 70)
+                .offset(y: -35)
+            
+            // ユーザー名
+            VStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 60, height: 12)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "E8EDF5"))
+                    .frame(width: 80, height: 10)
+            }
+            .offset(y: -25)
+            
+            // フォローボタン
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(hex: "E8EDF5"))
+                .frame(width: 100, height: 32)
+                .offset(y: -15)
+            
+            Spacer()
+        }
+        .frame(width: cardWidth, height: cardHeight)
+        .background(Color.white)
+        .cornerRadius(15)
+    }
+}
+
+/// ランキング投稿カードスケルトン
+private struct RankingPostCardSkeleton: View {
+    private let cardWidth: CGFloat = 124
+    private let cardHeight: CGFloat = 166
+    
+    var body: some View {
+        Rectangle()
+            .fill(Color(hex: "E8EDF5"))
+            .frame(width: cardWidth, height: cardHeight)
+            .cornerRadius(10)
+            .shimmer()
+            .shadow(color: .black.opacity(0.03), radius: 9.2, x: 0, y: 0)
     }
 }
 
