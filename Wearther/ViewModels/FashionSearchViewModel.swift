@@ -139,26 +139,20 @@ class FashionSearchViewModel: ObservableObject {
     func toggleFollow(for user: AppUser) async {
         guard let userId = user.id,
               let currentId = currentUserId,
-              userId != currentId else {
-            print("フォロー操作をスキップ: 自分自身またはログインしていない")
-            return
-        }
+              userId != currentId else { return }
         
         // 楽観的UI更新
         let previousState = followingStatus[userId] ?? false
         followingStatus[userId] = !previousState
         
         do {
-            if previousState {
-                try await fashionService.unfollowUser(targetUserId: userId, currentUserId: currentId)
-                print("フォロー解除成功: \(userId)")
-            } else {
-                try await fashionService.followUser(targetUserId: userId, currentUserId: currentId)
-                print("フォロー成功: \(userId)")
-            }
+            try await fashionService.toggleFollow(
+                targetUserId: userId,
+                currentUserId: currentId,
+                isCurrentlyFollowing: previousState
+            )
         } catch {
             // エラー時はUIを元に戻す
-            print("フォロー操作に失敗: \(error.localizedDescription)")
             followingStatus[userId] = previousState
         }
     }

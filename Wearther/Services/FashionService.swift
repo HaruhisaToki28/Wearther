@@ -339,6 +339,33 @@ class FashionService: ObservableObject {
         return doc.exists
     }
     
+    /// フォロー状態をトグル（共通メソッド）
+    /// - Parameters:
+    ///   - targetUserId: 対象ユーザーID
+    ///   - currentUserId: 現在のユーザーID
+    ///   - isCurrentlyFollowing: 現在のフォロー状態
+    /// - Returns: 新しいフォロー状態
+    /// - Throws: フォロー操作に失敗した場合
+    @discardableResult
+    func toggleFollow(
+        targetUserId: String,
+        currentUserId: String,
+        isCurrentlyFollowing: Bool
+    ) async throws -> Bool {
+        // 自分自身はフォローできない
+        guard targetUserId != currentUserId else {
+            throw FashionServiceError.cannotFollowSelf
+        }
+        
+        if isCurrentlyFollowing {
+            try await unfollowUser(targetUserId: targetUserId, currentUserId: currentUserId)
+            return false
+        } else {
+            try await followUser(targetUserId: targetUserId, currentUserId: currentUserId)
+            return true
+        }
+    }
+    
     // MARK: - 検索機能
     
     /// 投稿を検索
@@ -465,6 +492,25 @@ final class CachedUser: NSObject {
     init(user: AppUser, cachedAt: Date) {
         self.user = user
         self.cachedAt = cachedAt
+    }
+}
+
+// MARK: - FashionService Error
+
+enum FashionServiceError: LocalizedError {
+    case cannotFollowSelf
+    case userNotFound
+    case operationFailed(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .cannotFollowSelf:
+            return "自分自身をフォローすることはできません"
+        case .userNotFound:
+            return "ユーザーが見つかりません"
+        case .operationFailed(let message):
+            return message
+        }
     }
 }
 

@@ -203,36 +203,22 @@ class FashionViewModel: ObservableObject {
     /// - Parameter userData: 対象のおすすめユーザーデータ
     func toggleFollow(for userData: RecommendedUserData) async {
         guard let currentId = currentUserId,
-              let targetId = userData.user.id else {
-            print("フォロー操作をスキップ: ユーザーIDが取得できない")
-            return
-        }
+              let targetId = userData.user.id else { return }
         
-        // 楽観的UI更新（先にUIを更新）
+        // 楽観的UI更新
         let previousFollowState = userData.isFollowing
         if let index = recommendedUsers.firstIndex(where: { $0.id == userData.id }) {
             recommendedUsers[index].isFollowing.toggle()
         }
         
         do {
-            if previousFollowState {
-                // フォロー解除
-                try await fashionService.unfollowUser(
-                    targetUserId: targetId,
-                    currentUserId: currentId
-                )
-                print("フォロー解除成功: \(targetId)")
-            } else {
-                // フォロー
-                try await fashionService.followUser(
-                    targetUserId: targetId,
-                    currentUserId: currentId
-                )
-                print("フォロー成功: \(targetId)")
-            }
+            try await fashionService.toggleFollow(
+                targetUserId: targetId,
+                currentUserId: currentId,
+                isCurrentlyFollowing: previousFollowState
+            )
         } catch {
             // エラー時はUIを元に戻す
-            print("フォロー操作に失敗: \(error.localizedDescription)")
             if let index = recommendedUsers.firstIndex(where: { $0.id == userData.id }) {
                 recommendedUsers[index].isFollowing = previousFollowState
             }

@@ -142,58 +142,32 @@ class UserProfileViewModel: ObservableObject {
     
     /// フォローをトグル
     func toggleFollow() async {
-        guard let currentId = currentUserId,
-              currentId != userId else {
-            print("フォロー操作をスキップ: 自分自身またはログインしていない")
-            return
-        }
+        guard let currentId = currentUserId, currentId != userId else { return }
         
-        // 楽観的UI更新（先にUIを更新）
+        // 楽観的UI更新
         let previousFollowState = isFollowing
         isFollowing.toggle()
-        
-        // フォロワー数を先に更新
-        if var updatedUser = user {
-            if isFollowing {
-                updatedUser.followersCount += 1
-            } else {
-                updatedUser.followersCount = max(0, updatedUser.followersCount - 1)
-            }
-            user = updatedUser
-        }
+        updateFollowerCount(increment: !previousFollowState)
         
         do {
-            if previousFollowState {
-                // フォロー解除
-                try await fashionService.unfollowUser(
-                    targetUserId: userId,
-                    currentUserId: currentId
-                )
-                print("フォロー解除成功: \(userId)")
-            } else {
-                // フォロー
-                try await fashionService.followUser(
-                    targetUserId: userId,
-                    currentUserId: currentId
-                )
-                print("フォロー成功: \(userId)")
-            }
+            try await fashionService.toggleFollow(
+                targetUserId: userId,
+                currentUserId: currentId,
+                isCurrentlyFollowing: previousFollowState
+            )
         } catch {
             // エラー時はUIを元に戻す
-            print("フォロー操作に失敗: \(error.localizedDescription)")
             isFollowing = previousFollowState
-            
-            // フォロワー数も元に戻す
-            if var updatedUser = user {
-                if previousFollowState {
-                    updatedUser.followersCount += 1
-                } else {
-                    updatedUser.followersCount = max(0, updatedUser.followersCount - 1)
-                }
-                user = updatedUser
-            }
+            updateFollowerCount(increment: previousFollowState)
             errorMessage = "フォローの更新に失敗しました"
         }
+    }
+    
+    private func updateFollowerCount(increment: Bool) {
+        guard var updatedUser = user else { return }
+        updatedUser.followersCount += increment ? 1 : -1
+        updatedUser.followersCount = max(0, updatedUser.followersCount)
+        user = updatedUser
     }
     
     // MARK: - Private Methods
