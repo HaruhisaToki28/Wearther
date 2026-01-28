@@ -110,11 +110,16 @@ class WeatherViewModel: ObservableObject {
                         var postUser: AppUser? = nil
                         
                         if let post = post {
-                            postUser = try? await self.fashionService.fetchUser(userId: post.userId)
+                            do {
+                                postUser = try await self.fashionService.fetchUser(userId: post.userId)
+                            } catch {
+                                print("⚠️ 週間予報ユーザー取得失敗: \(error.localizedDescription)")
+                            }
                         }
                         
                         return (index, post, postUser)
                     } catch {
+                        print("⚠️ 週間予報取得失敗 (index: \(index)): \(error.localizedDescription)")
                         return (index, nil, nil)
                     }
                 }
@@ -164,12 +169,21 @@ class WeatherViewModel: ObservableObject {
             var outfits: [WeatherTodayOutfit] = []
             
             for (post, score) in posts {
-                let user = try? await fashionService.fetchUser(userId: post.userId)
+                var user: AppUser? = nil
+                do {
+                    user = try await fashionService.fetchUser(userId: post.userId)
+                } catch {
+                    print("⚠️ 今日のコーデユーザー取得失敗 (userId: \(post.userId)): \(error.localizedDescription)")
+                }
                 
                 var isLiked = false
                 if let postId = post.id, let currentId = currentUserId {
-                    isLiked = (try? await postService.isPostLiked(postId: postId, userId: currentId)) ?? false
-                    likedPosts[postId] = isLiked
+                    do {
+                        isLiked = try await postService.isPostLiked(postId: postId, userId: currentId)
+                        likedPosts[postId] = isLiked
+                    } catch {
+                        print("⚠️ いいね状態取得失敗 (postId: \(postId)): \(error.localizedDescription)")
+                    }
                 }
                 
                 outfits.append(WeatherTodayOutfit(

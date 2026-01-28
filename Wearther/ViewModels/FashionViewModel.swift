@@ -118,8 +118,12 @@ class FashionViewModel: ObservableObject {
             await withTaskGroup(of: (String, AppUser?).self) { group in
                 for userId in uniqueUserIds {
                     group.addTask {
-                        let user = try? await self.fashionService.fetchUser(userId: userId)
-                        return (userId, user)
+                        do {
+                            return (userId, try await self.fashionService.fetchUser(userId: userId))
+                        } catch {
+                            print("⚠️ ユーザー取得失敗 (userId: \(userId)): \(error.localizedDescription)")
+                            return (userId, nil)
+                        }
                     }
                 }
                 
@@ -236,13 +240,22 @@ class FashionViewModel: ObservableObject {
             
             for (index, post) in posts.enumerated() {
                 // ユーザー情報を取得
-                let user = try? await fashionService.fetchUser(userId: post.userId)
+                var user: AppUser? = nil
+                do {
+                    user = try await fashionService.fetchUser(userId: post.userId)
+                } catch {
+                    print("⚠️ ランキングユーザー取得失敗 (userId: \(post.userId)): \(error.localizedDescription)")
+                }
                 
                 // いいね状態を確認
                 var isLiked = false
                 if let postId = post.id, let currentId = currentUserId {
-                    isLiked = try await postService.isPostLiked(postId: postId, userId: currentId)
-                    likedPosts[postId] = isLiked
+                    do {
+                        isLiked = try await postService.isPostLiked(postId: postId, userId: currentId)
+                        likedPosts[postId] = isLiked
+                    } catch {
+                        print("⚠️ いいね状態取得失敗 (postId: \(postId)): \(error.localizedDescription)")
+                    }
                 }
                 
                 rankedData.append(RankedPost(
