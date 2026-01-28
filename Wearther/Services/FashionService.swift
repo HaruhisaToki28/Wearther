@@ -17,7 +17,29 @@ class FashionService: ObservableObject {
     
     private let db = Firestore.firestore()
     
-    private init() {}
+    // MARK: - User Cache
+    
+    /// ユーザー情報のキャッシュ（キー: userId）
+    private let userCache = NSCache<NSString, CachedUser>()
+    
+    /// キャッシュの有効期限（秒）
+    private let cacheExpirationSeconds: TimeInterval = 300 // 5分
+    
+    private init() {
+        // キャッシュの設定
+        userCache.countLimit = 100 // 最大100ユーザーまでキャッシュ
+    }
+    
+    /// キャッシュをクリア
+    func clearUserCache() {
+        userCache.removeAllObjects()
+        print("User cache cleared")
+    }
+    
+    /// 特定ユーザーのキャッシュを無効化
+    func invalidateUserCache(userId: String) {
+        userCache.removeObject(forKey: userId as NSString)
+    }
     
     // MARK: - 今日のトレンド
     
@@ -217,12 +239,35 @@ class FashionService: ObservableObject {
     
     // MARK: - ユーザー情報取得
     
-    /// ユーザーIDからユーザー情報を取得
-    /// - Parameter userId: ユーザーID
+    /// ユーザーIDからユーザー情報を取得（キャッシュ対応）
+    /// - Parameters:
+    ///   - userId: ユーザーID
+    ///   - forceRefresh: キャッシュを無視して強制的に再取得するかどうか
     /// - Returns: ユーザー情報
-    func fetchUser(userId: String) async throws -> AppUser? {
+    func fetchUser(userId: String, forceRefresh: Bool = false) async throws -> AppUser? {
+        let cacheKey = userId as NSString
+        
+        // キャッシュをチェック（強制リフレッシュでない場合）
+        if !forceRefresh, let cachedUser = userCache.object(forKey: cacheKey) {
+            // 有効期限をチェック
+            if Date().timeIntervalSince(cachedUser.cachedAt) < cacheExpirationSeconds {
+                return cachedUser.user
+            }
+            // 期限切れの場合はキャッシュから削除
+            userCache.removeObject(forKey: cacheKey)
+        }
+        
+        // Firestoreから取得
         let doc = try await db.collection("users").document(userId).getDocument()
-        return try? doc.data(as: AppUser.self)
+        guard let user = try? doc.data(as: AppUser.self) else {
+            return nil
+        }
+        
+        // キャッシュに保存
+        let cachedUser = CachedUser(user: user, cachedAt: Date())
+        userCache.setObject(cachedUser, forKey: cacheKey)
+        
+        return user
     }
     
     // MARK: - フォロー機能
@@ -360,7 +405,7 @@ class FashionService: ObservableObject {
         return Array(users.prefix(limit))
     }
     
-    /// 検索結果の投稿に対応するユーザー情報を一括取得
+    /// 検索結果の投稿に対応するユーザー情報を一括取得（キャッシュ対応）
     /// - Parameter posts: 投稿の配列
     /// - Returns: userIdをキーとするユーザー辞書
     func fetchUsersForPosts(_ posts: [Post]) async throws -> [String: AppUser] {
@@ -369,23 +414,57 @@ class FashionService: ObservableObject {
         guard !userIds.isEmpty else { return [:] }
         
         var userDict: [String: AppUser] = [:]
+        var uncachedUserIds: [String] = []
         
-        // Firestoreの「in」クエリは最大10件なので、分割して取得
-        let chunks = userIds.chunked(into: 10)
+        // まずキャッシュをチェック
+        for userId in userIds {
+            let cacheKey = userId as NSString
+            if let cachedUser = userCache.object(forKey: cacheKey),
+               Date().timeIntervalSince(cachedUser.cachedAt) < cacheExpirationSeconds {
+                // キャッシュヒット
+                userDict[userId] = cachedUser.user
+            } else {
+                // キャッシュミス → Firestoreから取得が必要
+                uncachedUserIds.append(userId)
+            }
+        }
         
-        for chunk in chunks {
-            let snapshot = try await db.collection("users")
-                .whereField(FieldPath.documentID(), in: chunk)
-                .getDocuments()
+        // キャッシュにないユーザーのみFirestoreから取得
+        if !uncachedUserIds.isEmpty {
+            let chunks = uncachedUserIds.chunked(into: 10)
             
-            for doc in snapshot.documents {
-                if let user = try? doc.data(as: AppUser.self) {
-                    userDict[doc.documentID] = user
+            for chunk in chunks {
+                let snapshot = try await db.collection("users")
+                    .whereField(FieldPath.documentID(), in: chunk)
+                    .getDocuments()
+                
+                for doc in snapshot.documents {
+                    if let user = try? doc.data(as: AppUser.self) {
+                        let userId = doc.documentID
+                        userDict[userId] = user
+                        
+                        // キャッシュに保存
+                        let cachedUser = CachedUser(user: user, cachedAt: Date())
+                        userCache.setObject(cachedUser, forKey: userId as NSString)
+                    }
                 }
             }
         }
         
         return userDict
+    }
+}
+
+// MARK: - Cache Helper
+
+/// キャッシュ用のラッパークラス（NSCacheはclassのみ対応）
+final class CachedUser: NSObject {
+    let user: AppUser
+    let cachedAt: Date
+    
+    init(user: AppUser, cachedAt: Date) {
+        self.user = user
+        self.cachedAt = cachedAt
     }
 }
 
