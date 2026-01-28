@@ -167,26 +167,30 @@ class PostService: ObservableObject {
     }
     
     /// 内部共通メソッド: スコア付きおすすめ投稿を取得
+    /// サーバーサイドで気温フィルタを適用してFirestore読み取りを削減
     private func fetchScoredRecommendedPosts(
         currentTemperature: Int,
         currentWeather: PostWeather,
         currentLocation: String,
         limit: Int
     ) async throws -> [(post: Post, score: Double)] {
-        // 全投稿を取得（パフォーマンスのため上限設定）
+        // 気温範囲を計算（±5度）
+        let minTemp = currentTemperature - 5
+        let maxTemp = currentTemperature + 5
+        
+        // サーバーサイドで気温フィルタを適用
+        // 注意: このクエリには複合インデックスが必要
+        // Firestore Console: posts collection, temperature (ASC), createdAt (DESC)
         let snapshot = try await db.collection("posts")
+            .whereField("temperature", isGreaterThanOrEqualTo: minTemp)
+            .whereField("temperature", isLessThanOrEqualTo: maxTemp)
+            .order(by: "temperature")
             .order(by: "createdAt", descending: true)
             .limit(to: 200)
             .getDocuments()
         
-        let allPosts = snapshot.documents.compactMap { doc in
+        let filteredPosts = snapshot.documents.compactMap { doc in
             try? doc.data(as: Post.self)
-        }
-        
-        // 気温差が5度以内の投稿のみをフィルタリング
-        let filteredPosts = allPosts.filter { post in
-            let tempDiff = abs(post.temperature - currentTemperature)
-            return tempDiff <= 5
         }
         
         // スコア計算してソート
