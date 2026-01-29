@@ -153,7 +153,8 @@ struct ProfileView: View {
             }
             .navigationBarHidden(true)
             .navigationDestination(for: Post.self) { post in
-                PostDetailView(post: post)
+                // 自分のプロフィールから開くのでsourceUserIdを渡して無限ループ防止
+                PostDetailView(post: post, sourceUserId: authService.currentUser?.id)
             }
             .onChange(of: viewModel.selectedTab) { oldValue, newValue in
                 if newValue == .likes && viewModel.likedPosts.isEmpty {
