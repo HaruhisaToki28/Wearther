@@ -11,14 +11,19 @@ import Kingfisher
 struct ProfileOutfitCard: View {
     let post: Post
     
+    /// カードサイズ
+    private let cardWidth: CGFloat = 115
+    private let cardHeight: CGFloat = 154
+    
     var body: some View {
         // 画像のみを表示するシンプルなカード
         CachedImage(
             url: post.imageURL,
-            targetSize: CGSize(width: 230, height: 308)
+            targetSize: CGSize(width: cardWidth * 2, height: cardHeight * 2)
         )
-        .frame(width: 115, height: 154)
+        .frame(width: cardWidth, height: cardHeight)
         .clipped()
+        .contentShape(Rectangle()) // タップ判定をフレームに限定
         .cornerRadius(10)
         .background(Color.white)
         .cornerRadius(10)

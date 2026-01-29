@@ -22,10 +22,15 @@ struct PostDetailView: View {
     /// 画像の高さ（Figmaデザイン: 526px）
     private let imageHeight: CGFloat = 526
     
+    /// 遷移元のユーザーID（無限ループ防止用）
+    /// このユーザーのプロフィールへのナビゲーションは戻る動作になる
+    private let sourceUserId: String?
+    
     // MARK: - Initialization
     
-    init(post: Post) {
+    init(post: Post, sourceUserId: String? = nil) {
         _viewModel = StateObject(wrappedValue: PostDetailViewModel(post: post))
+        self.sourceUserId = sourceUserId
     }
     
     // MARK: - Body
@@ -143,27 +148,8 @@ struct PostDetailView: View {
     /// ユーザー情報、いいね、共有、フォローボタンを表示
     private var userInfoRow: some View {
         HStack {
-            // 左側: アバターとユーザー情報（タップでユーザープロフィールへ遷移）
-            NavigationLink(destination: UserProfileView(userId: viewModel.post.userId)) {
-                HStack(spacing: 8) {
-                    // ユーザーアバター
-                    userAvatar
-                    
-                    // ユーザー名と日付/性別
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(viewModel.postUser?.displayName ?? "読み込み中...")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Color(hex: "2D2D2D"))
-                            .lineLimit(1)
-                        
-                        Text(viewModel.dateAndGenderText)
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "AAAAAA"))
-                            .lineLimit(1)
-                    }
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
+            // 左側: アバターとユーザー情報
+            userProfileLink
             
             Spacer()
             
@@ -192,6 +178,45 @@ struct PostDetailView: View {
                 Circle()
                     .stroke(Color(hex: "DDE2E2"), lineWidth: 0.1)
             )
+    }
+    
+    /// ユーザープロフィールへのリンク/ボタン
+    /// sourceUserIdと同じユーザーの場合は戻る動作（無限ループ防止）
+    @ViewBuilder
+    private var userProfileLink: some View {
+        let userInfoContent = HStack(spacing: 8) {
+            // ユーザーアバター
+            userAvatar
+            
+            // ユーザー名と日付/性別
+            VStack(alignment: .leading, spacing: 6) {
+                Text(viewModel.postUser?.displayName ?? "読み込み中...")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Color(hex: "2D2D2D"))
+                    .lineLimit(1)
+                
+                Text(viewModel.dateAndGenderText)
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(hex: "AAAAAA"))
+                    .lineLimit(1)
+            }
+        }
+        
+        // 同じユーザーから来た場合は戻る動作
+        if sourceUserId == viewModel.post.userId {
+            Button {
+                dismiss()
+            } label: {
+                userInfoContent
+            }
+            .buttonStyle(PlainButtonStyle())
+        } else {
+            // 通常のNavigationLink
+            NavigationLink(destination: UserProfileView(userId: viewModel.post.userId)) {
+                userInfoContent
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
     }
     
     /// いいねボタン

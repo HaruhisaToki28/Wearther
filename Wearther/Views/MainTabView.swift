@@ -33,6 +33,16 @@ enum Tab: String, CaseIterable {
         case .profile: return "person.fill"
         }
     }
+    
+    var accessibilityLabel: String {
+        switch self {
+        case .home: return "ホーム"
+        case .weather: return "天気"
+        case .camera: return "新規投稿"
+        case .clothes: return "ファッション"
+        case .profile: return "プロフィール"
+        }
+    }
 }
 
 struct MainTabView: View {
@@ -65,7 +75,7 @@ struct MainTabView: View {
                     .background(Color(red: 0.87, green: 0.87, blue: 0.87)) // #DEDEDE 仕切り線の色
                     .frame(height: 0.05) // 仕切り線の太さ
                 
-                HStack(spacing: 48) { // アイコン間の間隔
+                HStack(spacing: 32) { // アイコン間の間隔
                     ForEach(Tab.allCases, id: \.self) { tab in
                         Button(action: {
                             if tab == .camera {
@@ -77,15 +87,17 @@ struct MainTabView: View {
                         }) {
                             Image(systemName: selectedTab == tab ? tab.filledSymbol : tab.symbol)
                                 .font(.system(size: 23)) // アイコンサイズ
-                                .foregroundColor(.black) // アイコンの色
-                                .frame(width: 30, height: 30) // タップ領域のサイズ
+                                .foregroundColor(Color.primary) // システムカラー
+                                .frame(width: 44, height: 44) // HIG準拠タップ領域
+                                .contentShape(Rectangle())
                         }
+                        .accessibilityLabel(tab.accessibilityLabel)
                     }
                 }
                 .padding(.top, 10) // アイコン上の余白
                 .padding(.bottom, 10) // アイコン下の余白（SafeArea分も考慮）
                 .frame(maxWidth: .infinity)
-                .background(Color.white) // タブバーの背景色
+                .background(Color(.systemBackground)) // システムカラー（ダークモード対応）
             }
         }
         .ignoresSafeArea(.keyboard)

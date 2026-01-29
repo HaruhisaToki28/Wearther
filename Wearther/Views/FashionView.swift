@@ -124,10 +124,10 @@ struct FashionView: View {
                 emptyStateView(message: "トレンド投稿がありません")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 11) {
+                    HStack(alignment: .top, spacing: 11) {
                         ForEach(viewModel.trendPosts) { post in
                             // 投稿詳細画面への遷移
-                            NavigationLink(value: post) {
+                            NavigationLink(destination: PostDetailView(post: post)) {
                                 TrendPostCard(
                                     post: post,
                                     user: viewModel.trendPostUsers[post.userId]
@@ -214,10 +214,10 @@ struct FashionView: View {
                 emptyStateView(message: "ランキングデータがありません")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 11) {
+                    HStack(alignment: .top, spacing: 11) {
                         ForEach(viewModel.rankingPosts) { rankedPost in
                             // 投稿詳細画面への遷移
-                            NavigationLink(value: rankedPost.post) {
+                            NavigationLink(destination: PostDetailView(post: rankedPost.post)) {
                                 RankingPostCard(
                                     rankedPost: rankedPost,
                                     onLikeTapped: {
