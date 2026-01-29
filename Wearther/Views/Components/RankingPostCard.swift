@@ -55,10 +55,12 @@ struct RankingPostCard: View {
             .frame(width: cardWidth, height: cardHeight)
             .clipped()
             .cornerRadius(10, corners: showRankTag ? [.topRight, .bottomLeft, .bottomRight] : .allCorners)
+            .allowsHitTesting(false)
             
             // 順位タグ（1-3位のみ）
             if showRankTag {
                 rankTag
+                    .allowsHitTesting(false)
             }
             
             // いいねボタン（右下）
@@ -72,6 +74,7 @@ struct RankingPostCard: View {
             }
         }
         .frame(width: cardWidth, height: cardHeight)
+        .contentShape(Rectangle())
         .shadow(color: .black.opacity(0.03), radius: 9.2, x: 0, y: 0)
     }
     

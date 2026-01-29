@@ -41,6 +41,7 @@ struct TrendPostCard: View {
                 startPoint: .center,
                 endPoint: .bottom
             )
+            .allowsHitTesting(false)
             
             // ユーザー名 + ユーザーID
             if let user = user {
@@ -50,9 +51,11 @@ struct TrendPostCard: View {
                     .lineLimit(1)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
+                    .allowsHitTesting(false)
             }
         }
         .frame(width: cardWidth, height: cardHeight)
+        .contentShape(Rectangle())
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.03), radius: 9.2, x: 0, y: 0)
     }
