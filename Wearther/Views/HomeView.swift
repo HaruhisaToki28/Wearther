@@ -39,7 +39,7 @@ struct HomeView: View {
                     // Center Logo
                     Text("Wearther")
                         .font(.custom("Sinhala MN", size: 30))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color.primary)
                     
                     // Right Bell Icon
                     HStack {
@@ -48,18 +48,21 @@ struct HomeView: View {
                             showNotifications = true
                         }) {
                             Image(systemName: "bell")
-                                .font(.system(size: 24))
-                                .foregroundColor(.black)
+                                .font(.system(size: 22))
+                                .foregroundColor(Color.primary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }
+                        .accessibilityLabel("通知")
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
-                .background(Color.white)
+                .background(Color(.systemBackground))
                 .overlay(
                     Rectangle()
-                        .fill(Color(hex: "DDDDDD"))
-                        .frame(height: 0.2),
+                        .fill(Color(.separator))
+                        .frame(height: 0.5),
                     alignment: .bottom
                 )
                 

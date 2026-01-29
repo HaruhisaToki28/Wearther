@@ -32,8 +32,9 @@ struct ForgotPasswordView: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 25))
                             .foregroundColor(.black)
+                            .frame(width: 44, height: 44)
                     }
-                    .padding(.leading, 24)
+                    .padding(.leading, 16)
                     
                     Spacer()
                 }
@@ -110,6 +111,10 @@ struct ForgotPasswordView: View {
             Spacer()
         }
         .background(Color.white)
+        .ignoresSafeArea(.keyboard)
+        .onTapGesture {
+            dismissKeyboard()
+        }
         .navigationBarHidden(true)
     }
     

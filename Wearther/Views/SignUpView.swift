@@ -68,6 +68,10 @@ struct SignUpView: View {
             Spacer()
         }
         .background(Color.white)
+        .ignoresSafeArea(.keyboard)
+        .onTapGesture {
+            dismissKeyboard()
+        }
         .navigationBarHidden(true)
     }
     

@@ -72,21 +72,22 @@ struct WeatherView: View {
                 Button(action: { useCurrentLocation() }) {
                     ZStack {
                         Circle()
-                            .fill(isUsingCurrentLocation ? Color(hex: "08C4FA").opacity(0.15) : Color(hex: "F5F5F5"))
-                            .frame(width: 40, height: 40)
+                            .fill(isUsingCurrentLocation ? Color(hex: "08C4FA").opacity(0.15) : Color(.secondarySystemBackground))
+                            .frame(width: 44, height: 44)
                         
                         Image(systemName: isUsingCurrentLocation ? "location.fill" : "location")
-                            .font(.system(size: 16))
-                            .foregroundColor(isUsingCurrentLocation ? Color(hex: "08C4FA") : Color(hex: "68717B"))
+                            .font(.system(size: 18))
+                            .foregroundColor(isUsingCurrentLocation ? Color(hex: "08C4FA") : Color(.secondaryLabel))
                     }
                 }
+                .accessibilityLabel(isUsingCurrentLocation ? "現在地を使用中" : "現在地を使用")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .overlay(
                 Rectangle()
-                    .fill(Color(hex: "DDDDDD"))
+                    .fill(Color(.separator))
                     .frame(height: 0.5),
                 alignment: .bottom
             )

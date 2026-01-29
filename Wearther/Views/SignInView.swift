@@ -1,5 +1,5 @@
 //
-//  SignInView.swift.swift
+//  SignInView.swift
 //  Wearther
 //
 //  Created by 阿久津咲千 on 2025/12/18.
@@ -25,7 +25,7 @@ struct SignInView: View {
                 // App Title
                 Text("Wearther")
                     .font(.custom("Sinhala MN", size: 40))
-                    .tracking(-1.2) // -8% letter spacing
+                    .tracking(-1.2)
                     .foregroundColor(.black)
                     .padding(.bottom, 50)
                 
@@ -142,6 +142,10 @@ struct SignInView: View {
                 .padding(.bottom, 50)
             }
             .background(Color.white)
+            .ignoresSafeArea(.keyboard)
+            .onTapGesture {
+                dismissKeyboard()
+            }
             .navigationBarHidden(true)
         }
     }
