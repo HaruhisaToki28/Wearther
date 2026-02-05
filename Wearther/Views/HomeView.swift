@@ -492,7 +492,7 @@ private struct HomePostCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Image - タップで投稿詳細へ
+            // Image - タップで投稿詳細へ（当たり判定を画像枠全体にする）
             NavigationLink(destination: PostDetailView(post: post)) {
                 GeometryReader { geometry in
                     CachedImage(
@@ -503,6 +503,7 @@ private struct HomePostCard: View {
                     .clipped()
                 }
                 .frame(height: 180)
+                .contentShape(Rectangle())
                 .clipped()
             }
             .buttonStyle(PlainButtonStyle())
