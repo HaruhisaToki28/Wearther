@@ -39,6 +39,7 @@ struct SearchPostCard: View {
             footerSection
         }
         .frame(width: cardWidth, height: totalHeight)
+        .contentShape(Rectangle())
         .background(Color.white)
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.03), radius: 9.2, x: 0, y: 0)
